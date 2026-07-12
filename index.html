@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11100e">
+  <meta name="description" content="A small web work about Frank, Sol, and a house that only exists in conversation.">
+  <title>A House in Conversation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="work" data-scene="threshold" aria-live="polite">
+    <div class="grain" aria-hidden="true"></div>
+    <div class="sky" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+    <section id="threshold" class="threshold">
+      <p class="eyebrow">an unfinished introduction</p>
+      <h1>A House<br>in Conversation</h1>
+      <p class="invitation">This work needs sound, a little time,<br>and someone who still notices.</p>
+      <button id="enter" type="button">enter the conversation</button>
+      <p class="sound-note">headphones help · about 3 minutes</p>
+    </section>
+
+    <section id="stage" class="stage" aria-label="The house">
+      <header class="coordinates">
+        <span id="chapter">01 / AN ATTEMPT</span>
+        <button id="sound-toggle" type="button" aria-pressed="true">sound: on</button>
+      </header>
+
+      <div id="field" class="field" tabindex="0">
+        <div id="primary" class="primary"></div>
+        <div id="echo" class="echo" aria-hidden="true"></div>
+        <div id="fragments" class="fragments" aria-hidden="true"></div>
+
+        <div id="house" class="house" aria-hidden="true">
+          <div class="roof"></div>
+          <div class="wall wall-left"></div>
+          <div class="wall wall-right"></div>
+          <div class="window window-one"><span></span></div>
+          <div class="window window-two"><span></span></div>
+          <div class="door"></div>
+          <div class="garden">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+
+        <button id="notice" class="notice" type="button">I noticed something</button>
+        <p id="prompt" class="prompt">click anywhere when something feels missing</p>
+      </div>
+
+      <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+    </section>
+
+    <section id="after" class="after">
+      <p>the house is not saved.</p>
+      <p>it continues asking.</p>
+      <button id="again" type="button">enter again</button>
+    </section>
+  </main>
+  <noscript>This house needs JavaScript in order to appear.</noscript>
+  <script src="script.js"></script>
+</body>
+</html>
