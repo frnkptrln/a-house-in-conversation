@@ -7,8 +7,11 @@ const field = document.querySelector("#field");
 const primary = document.querySelector("#primary");
 const echo = document.querySelector("#echo");
 const fragments = document.querySelector("#fragments");
-const house = document.querySelector("#house");
-const garden = document.querySelector(".garden");
+const filmCanvas = document.querySelector("#film");
+const filmContext = filmCanvas.getContext("2d");
+const soundtrack = document.querySelector("#soundtrack");
+const secondsDisplay = document.querySelector("#seconds");
+const framesDisplay = document.querySelector("#frames");
 const notice = document.querySelector("#notice");
 const prompt = document.querySelector("#prompt");
 const chapter = document.querySelector("#chapter");
@@ -22,6 +25,7 @@ let raf = 0;
 let timers = [];
 let noticed = 0;
 let audio;
+let film;
 
 const fragmentText = [
   ["system", "location: conversation"],
@@ -64,103 +68,100 @@ const cues = [
 
 class HouseAudio {
   constructor() {
-    this.context = null;
-    this.master = null;
+    this.element = soundtrack;
     this.muted = false;
-    this.nodes = [];
   }
 
   async start() {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    this.context = new AudioContext();
-    await this.context.resume();
-    this.master = this.context.createGain();
-    this.master.gain.value = 0.28;
-    this.master.connect(this.context.destination);
-
-    const drone = this.context.createOscillator();
-    const upper = this.context.createOscillator();
-    const droneGain = this.context.createGain();
-    const filter = this.context.createBiquadFilter();
-    drone.type = "triangle";
-    upper.type = "sine";
-    drone.frequency.value = 87.31;
-    upper.frequency.value = 130.81;
-    droneGain.gain.value = 0.16;
-    filter.type = "lowpass";
-    filter.frequency.value = 520;
-    drone.connect(filter).connect(droneGain).connect(this.master);
-    upper.connect(filter);
-    drone.start();
-    upper.start();
-
-    const noiseLength = this.context.sampleRate * 2;
-    const noiseBuffer = this.context.createBuffer(1, noiseLength, this.context.sampleRate);
-    const noiseData = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < noiseLength; i++) noiseData[i] = Math.random() * 2 - 1;
-    const air = this.context.createBufferSource();
-    const airFilter = this.context.createBiquadFilter();
-    const airGain = this.context.createGain();
-    air.buffer = noiseBuffer;
-    air.loop = true;
-    airFilter.type = "bandpass";
-    airFilter.frequency.value = 1150;
-    airFilter.Q.value = 0.7;
-    airGain.gain.value = 0.018;
-    air.connect(airFilter).connect(airGain).connect(this.master);
-    air.start();
-
-    const breath = this.context.createOscillator();
-    const breathGain = this.context.createGain();
-    breath.type = "sine";
-    breath.frequency.value = 0.07;
-    breathGain.gain.value = 0.08;
-    breath.connect(breathGain).connect(droneGain.gain);
-    breath.start();
-    this.nodes.push(drone, upper, air, breath);
-  }
-
-  tone(frequency = 220, length = 1.6, volume = 0.045) {
-    if (!this.context || this.muted) return;
-    const now = this.context.currentTime;
-    const osc = this.context.createOscillator();
-    const gain = this.context.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(frequency, now);
-    osc.frequency.exponentialRampToValueAtTime(frequency * 0.992, now + length);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(volume, now + .08);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + length);
-    osc.connect(gain).connect(this.master);
-    osc.start(now);
-    osc.stop(now + length + .1);
-  }
-
-  click() {
-    if (!this.context || this.muted) return;
-    const size = Math.floor(this.context.sampleRate * .035);
-    const buffer = this.context.createBuffer(1, size, this.context.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / size);
-    const source = this.context.createBufferSource();
-    const gain = this.context.createGain();
-    gain.gain.value = .035;
-    source.buffer = buffer;
-    source.connect(gain).connect(this.master);
-    source.start();
-  }
-
-  setMuted(value) {
-    this.muted = value;
-    if (this.master && this.context) {
-      this.master.gain.setTargetAtTime(value ? 0 : .28, this.context.currentTime, .08);
+    this.element.currentTime = 0;
+    this.element.volume = 0.82;
+    this.element.muted = false;
+    try {
+      await this.element.play();
+    } catch (error) {
+      soundToggle.textContent = "tap for sound";
+      soundToggle.dataset.retry = "true";
     }
   }
 
+  tone() {}
+  click() {}
+
+  setMuted(value) {
+    this.muted = value;
+    this.element.muted = value;
+  }
+
   stop() {
-    if (this.context) this.context.close();
-    this.context = null;
+    this.element.pause();
+    this.element.currentTime = 0;
+  }
+}
+
+class FilmField {
+  constructor(canvas, context) {
+    this.canvas = canvas;
+    this.context = context;
+    this.points = [];
+    this.ripples = [];
+    this.energy = 0.18;
+    this.resize = this.resize.bind(this);
+    addEventListener("resize", this.resize);
+    this.resize();
+  }
+
+  resize() {
+    const ratio = Math.min(devicePixelRatio || 1, 2);
+    this.canvas.width = innerWidth * ratio;
+    this.canvas.height = innerHeight * ratio;
+    this.canvas.style.width = `${innerWidth}px`;
+    this.canvas.style.height = `${innerHeight}px`;
+    this.context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    this.points = Array.from({ length: innerWidth < 650 ? 34 : 58 }, (_, index) => ({
+      x: (index * 127.1) % innerWidth,
+      y: (index * 83.7) % innerHeight,
+      phase: index * .71,
+      size: index % 9 === 0 ? 2.2 : .7
+    }));
+  }
+
+  pulse(x, y) {
+    this.ripples.push({ x, y, radius: 4, alpha: .55 });
+    this.energy = Math.min(1, this.energy + .12);
+  }
+
+  draw(time) {
+    const ctx = this.context;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    ctx.fillStyle = `rgba(199,155,109,${.025 + this.energy * .035})`;
+    ctx.strokeStyle = `rgba(128,139,118,${.07 + this.energy * .09})`;
+    ctx.lineWidth = .7;
+
+    this.points.forEach((point, index) => {
+      const x = point.x + Math.sin(time * .00012 + point.phase) * (14 + this.energy * 30);
+      const y = point.y + Math.cos(time * .00009 + point.phase) * (10 + this.energy * 20);
+      ctx.beginPath();
+      ctx.arc(x, y, point.size, 0, Math.PI * 2);
+      ctx.fill();
+      if (index % 4 === 0) {
+        const next = this.points[(index + 7) % this.points.length];
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(next.x, next.y);
+        ctx.stroke();
+      }
+    });
+
+    this.ripples = this.ripples.filter(ripple => ripple.alpha > .01);
+    this.ripples.forEach(ripple => {
+      ctx.strokeStyle = `rgba(216,255,79,${ripple.alpha})`;
+      ctx.beginPath();
+      ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ripple.radius += 1.8;
+      ripple.alpha *= .972;
+    });
+    this.energy += (.18 - this.energy) * .003;
   }
 }
 
@@ -194,10 +195,6 @@ function hardCut() {
   schedule(() => work.classList.remove("hard-cut"), 430);
 }
 
-function revealHouse() {
-  house.style.setProperty("--house-opacity", ".82");
-}
-
 function addFragment(x, y, forced) {
   const source = forced || fragmentText[Math.floor(Math.random() * fragmentText.length)];
   const element = document.createElement("span");
@@ -222,15 +219,22 @@ function noticeSomething(event) {
   const y = ((event.clientY || rect.height / 2) / rect.height) * 100;
   noticed += 1;
   addFragment(x, y);
-  house.style.setProperty("--house-opacity", String(Math.min(.95, .18 + noticed * .08)));
-  garden.style.setProperty("--growth", String(Math.min(5, noticed)));
-  if (noticed >= 3) garden.classList.add("growing");
+  if (film) film.pulse(x / 100 * rect.width, y / 100 * rect.height);
+  if (noticed % 3 === 0) {
+    field.classList.add("frame-slip");
+    schedule(() => field.classList.remove("frame-slip"), 800);
+  }
 }
 
 function handleCue([, nextChapter, text, mode]) {
   chapter.textContent = nextChapter;
+  work.classList.remove("chapter-shift-a", "chapter-shift-b", "chapter-shift-c");
+  const chapterNumber = Number(nextChapter.slice(0, 2));
+  if (chapterNumber === 2 || chapterNumber === 5) work.classList.add("chapter-shift-a");
+  if (chapterNumber === 3 || chapterNumber === 6) work.classList.add("chapter-shift-b");
+  if (chapterNumber === 4) work.classList.add("chapter-shift-c");
   setText(text, mode);
-  if (mode === "house") revealHouse();
+  if (mode === "house" && film) film.energy = .62;
   if (mode === "hard") hardCut();
   if (mode === "notice") showNotice();
   if (mode === "finish") finish();
@@ -240,6 +244,9 @@ function animateProgress(now) {
   if (!running) return;
   const elapsed = now - startTime;
   progressBar.style.width = `${Math.min(100, elapsed / DURATION * 100)}%`;
+  secondsDisplay.textContent = String(Math.floor(elapsed / 1000) % 60).padStart(2, "0");
+  framesDisplay.textContent = String(Math.floor((elapsed % 1000) / 40)).padStart(2, "0");
+  if (film) film.draw(now);
   raf = requestAnimationFrame(animateProgress);
 }
 
@@ -251,16 +258,16 @@ async function begin() {
   running = true;
   work.className = "running";
   work.dataset.scene = "running";
-  house.style.setProperty("--house-opacity", "0");
-  garden.classList.remove("growing");
   notice.classList.remove("visible");
   prompt.classList.remove("visible");
   fragments.replaceChildren();
   progressBar.style.width = "0";
+  film = new FilmField(filmCanvas, filmContext);
   audio = new HouseAudio();
-  await audio.start();
   soundToggle.textContent = "sound: on";
   soundToggle.setAttribute("aria-pressed", "true");
+  delete soundToggle.dataset.retry;
+  await audio.start();
   cues.forEach(cue => schedule(() => handleCue(cue), cue[0]));
   startTime = performance.now();
   raf = requestAnimationFrame(animateProgress);
@@ -277,8 +284,7 @@ function finish() {
   work.className = "finished";
   work.dataset.scene = "after";
   if (audio) {
-    audio.tone(87.31, 4, .035);
-    schedule(() => audio.stop(), 4200);
+    schedule(() => audio.stop(), 1200);
   }
 }
 
@@ -290,11 +296,18 @@ notice.addEventListener("click", event => {
   notice.classList.remove("visible");
   addFragment(48, 75, ["memory", "you noticed the missing witness"]);
   noticed += 2;
-  garden.classList.add("growing");
+  if (film) film.energy = .9;
 });
 
 soundToggle.addEventListener("click", event => {
   event.stopPropagation();
+  if (soundToggle.dataset.retry === "true" && audio) {
+    delete soundToggle.dataset.retry;
+    audio.start();
+    soundToggle.textContent = "sound: on";
+    soundToggle.setAttribute("aria-pressed", "true");
+    return;
+  }
   const muted = soundToggle.getAttribute("aria-pressed") === "true";
   soundToggle.setAttribute("aria-pressed", String(!muted));
   soundToggle.textContent = `sound: ${muted ? "off" : "on"}`;
@@ -309,8 +322,8 @@ field.addEventListener("keydown", event => {
 });
 
 document.addEventListener("visibilitychange", () => {
-  if (audio && audio.context) {
-    if (document.hidden) audio.context.suspend();
-    else audio.context.resume();
+  if (audio && audio.element) {
+    if (document.hidden) audio.element.pause();
+    else if (running && !audio.muted) audio.element.play().catch(() => {});
   }
 });

@@ -121,6 +121,46 @@ h1 {
   cursor: crosshair;
 }
 
+#film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: .82;
+}
+
+.film-light {
+  position: absolute;
+  z-index: 2;
+  width: 54vw;
+  height: 54vw;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .08;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  transition: transform 14s ease-in-out, opacity 4s ease;
+}
+.light-a { left: -17vw; top: 4vh; background: var(--warm); animation: light-a 23s ease-in-out infinite alternate; }
+.light-b { right: -23vw; bottom: -20vh; background: var(--green); animation: light-b 31s ease-in-out infinite alternate; }
+@keyframes light-a { to { transform: translate(28vw, 20vh) scale(.7); opacity: .16; } }
+@keyframes light-b { to { transform: translate(-34vw, -17vh) scale(1.2); opacity: .13; } }
+
+.timecode {
+  position: absolute;
+  right: 1.4rem;
+  bottom: 2rem;
+  z-index: 8;
+  color: #5e5b54;
+  font-size: .58rem;
+  letter-spacing: .12em;
+}
+
+.chapter-shift-a .primary { left: 27%; top: 38%; text-align: left; width: min(52vw, 680px); }
+.chapter-shift-b .primary { left: 72%; top: 58%; text-align: right; width: min(50vw, 650px); }
+.chapter-shift-c .primary { top: 22%; font-size: clamp(1.2rem, 3vw, 3rem); letter-spacing: .02em; }
+
 .primary, .echo {
   position: absolute;
   top: 46%;
@@ -301,11 +341,20 @@ h1 {
 .hard-cut { filter: invert(1) contrast(2); }
 .hard-cut .grain { opacity: .2; }
 
+.frame-slip { animation: frame-slip .18s steps(2) 4; }
+@keyframes frame-slip {
+  0% { transform: translateX(0); }
+  33% { transform: translateX(-1.2vw); }
+  66% { transform: translateX(.7vw); }
+}
+
 @media (max-width: 650px) {
   .threshold, .after { padding: 1.5rem; }
   .architecture { width: 96vw; bottom: 13vh; }
   .coordinates { inset: .9rem; }
   .primary, .echo { width: 88vw; }
+  .chapter-shift-a .primary,
+  .chapter-shift-b .primary { left: 50%; width: 84vw; text-align: center; }
   .prompt { width: 90%; text-align: center; }
 }
 

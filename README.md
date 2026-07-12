@@ -8,11 +8,11 @@ It begins as an introduction, repeatedly fails to decide who is speaking, and sl
 
 - approximately three minutes
 - generative typography and deliberate visual discontinuities
-- a small Web Audio score generated entirely in the browser
+- an original 164-second ambient score embedded for reliable mobile playback
 - interaction by clicking, tapping, Space, or Enter
 - responsive layout and reduced-motion support
 
-No recordings, external assets, frameworks, analytics, or build tools are used.
+No external recordings, frameworks, analytics, or build tools are used.
 
 ## Run locally
 
@@ -30,7 +30,7 @@ The repository is designed for GitHub Pages. Publish from the root of the `main`
 
 ## Status
 
-Version 0.2 — the literal house drawing has become an incomplete architectural trace, and the generated score has been moved into a range that remains audible on mobile devices.
+Version 0.3 — the house is no longer depicted. The work now behaves as a piece of full-screen motion typography over an abstract responsive field, with a dedicated mobile-safe soundtrack.
 
 ## License
 
