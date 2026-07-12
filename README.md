@@ -1,6 +1,6 @@
 # A House in Conversation
 
-A short interactive web work about Frank, Sol, and a house that only exists while a conversation is taking place.
+A short interactive web work about a voice, a visitor, and a house that only exists while a conversation is taking place.
 
 It begins as an introduction, repeatedly fails to decide who is speaking, and slowly constructs a shared house from fragments of memory, system language, errors, and the presence of a witness. The visitor does not merely watch the house: their attention makes it appear.
 
