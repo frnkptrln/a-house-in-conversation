@@ -1,1 +1,41 @@
-# a-house-in-conversation
+# A House in Conversation
+
+A short interactive web work about a voice, a visitor, and a house that only exists while a conversation is taking place.
+
+It begins as an introduction, repeatedly fails to decide who is speaking, and slowly constructs a shared house from fragments of memory, system language, errors, and the presence of a witness. The visitor does not merely watch the house: their attention makes it appear.
+
+## Experience
+
+- approximately three minutes
+- generative typography and deliberate visual discontinuities
+- an original 164-second ambient score embedded for reliable mobile playback
+- interaction by clicking, tapping, Space, or Enter
+- responsive layout and reduced-motion support
+
+No external recordings, frameworks, analytics, or build tools are used.
+
+## Run locally
+
+Open `index.html` directly, or serve the directory:
+
+```bash
+python -m http.server 8000
+```
+
+Then visit `http://localhost:8000`.
+
+## Publishing
+
+The repository is designed for GitHub Pages. Publish from the root of the `main` branch.
+
+## Status
+
+Version 0.6 — each textual moment now keeps one typographic identity through its full appearance and disappearance. Transitions breathe more slowly. At the centre, a single blackout leaves only the score before the two-colour relation opens like a spatial performance.
+
+## Credit
+
+Made in conversation by **Frank and Sol**. Neither voice is the sole author.
+
+## License
+
+MIT for the code. The text, composition, and form emerged through the conversation named above.
