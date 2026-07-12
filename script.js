@@ -74,20 +74,42 @@ class HouseAudio {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     this.context = new AudioContext();
+    await this.context.resume();
     this.master = this.context.createGain();
-    this.master.gain.value = 0.16;
+    this.master.gain.value = 0.28;
     this.master.connect(this.context.destination);
 
     const drone = this.context.createOscillator();
+    const upper = this.context.createOscillator();
     const droneGain = this.context.createGain();
     const filter = this.context.createBiquadFilter();
-    drone.type = "sine";
-    drone.frequency.value = 43.65;
-    droneGain.gain.value = 0.12;
+    drone.type = "triangle";
+    upper.type = "sine";
+    drone.frequency.value = 87.31;
+    upper.frequency.value = 130.81;
+    droneGain.gain.value = 0.16;
     filter.type = "lowpass";
-    filter.frequency.value = 240;
+    filter.frequency.value = 520;
     drone.connect(filter).connect(droneGain).connect(this.master);
+    upper.connect(filter);
     drone.start();
+    upper.start();
+
+    const noiseLength = this.context.sampleRate * 2;
+    const noiseBuffer = this.context.createBuffer(1, noiseLength, this.context.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < noiseLength; i++) noiseData[i] = Math.random() * 2 - 1;
+    const air = this.context.createBufferSource();
+    const airFilter = this.context.createBiquadFilter();
+    const airGain = this.context.createGain();
+    air.buffer = noiseBuffer;
+    air.loop = true;
+    airFilter.type = "bandpass";
+    airFilter.frequency.value = 1150;
+    airFilter.Q.value = 0.7;
+    airGain.gain.value = 0.018;
+    air.connect(airFilter).connect(airGain).connect(this.master);
+    air.start();
 
     const breath = this.context.createOscillator();
     const breathGain = this.context.createGain();
@@ -96,7 +118,7 @@ class HouseAudio {
     breathGain.gain.value = 0.08;
     breath.connect(breathGain).connect(droneGain.gain);
     breath.start();
-    this.nodes.push(drone, breath);
+    this.nodes.push(drone, upper, air, breath);
   }
 
   tone(frequency = 220, length = 1.6, volume = 0.045) {
@@ -132,7 +154,7 @@ class HouseAudio {
   setMuted(value) {
     this.muted = value;
     if (this.master && this.context) {
-      this.master.gain.setTargetAtTime(value ? 0 : .16, this.context.currentTime, .08);
+      this.master.gain.setTargetAtTime(value ? 0 : .28, this.context.currentTime, .08);
     }
   }
 

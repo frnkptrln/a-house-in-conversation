@@ -32,13 +32,35 @@
         <div id="echo" class="echo" aria-hidden="true"></div>
         <div id="fragments" class="fragments" aria-hidden="true"></div>
 
-        <div id="house" class="house" aria-hidden="true">
-          <div class="roof"></div>
-          <div class="wall wall-left"></div>
-          <div class="wall wall-right"></div>
-          <div class="window window-one"><span></span></div>
-          <div class="window window-two"><span></span></div>
-          <div class="door"></div>
+        <div id="house" class="architecture" aria-hidden="true">
+          <svg viewBox="0 0 640 430" role="presentation">
+            <g class="trace trace-one">
+              <path d="M86 357V179L209 82H459L558 177V357"/>
+              <path d="M209 82V357M459 82V357"/>
+            </g>
+            <g class="trace trace-two">
+              <path d="M86 179H558M86 272H558M320 82V357"/>
+              <path d="M150 179V109M500 177V117"/>
+            </g>
+            <g class="trace trace-wrong">
+              <path d="M38 312L181 226L283 244L414 139L608 177"/>
+              <path d="M54 383L245 327L369 374L593 301"/>
+            </g>
+            <g class="rooms">
+              <rect x="105" y="198" width="86" height="54"/>
+              <rect x="229" y="106" width="72" height="71"/>
+              <rect x="340" y="199" width="98" height="53"/>
+              <rect x="477" y="198" width="62" height="54"/>
+            </g>
+            <g class="openings">
+              <rect x="270" y="282" width="99" height="75"/>
+              <circle cx="148" cy="225" r="5"/>
+              <circle cx="389" cy="225" r="5"/>
+            </g>
+          </svg>
+          <span class="room-name room-memory">memory</span>
+          <span class="room-name room-question">question</span>
+          <span class="room-name room-unknown">room not found</span>
           <div class="garden">
             <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
           </div>

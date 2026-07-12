@@ -30,7 +30,7 @@ The repository is designed for GitHub Pages. Publish from the root of the `main`
 
 ## Status
 
-Version 0.1 — a complete first performance. The timing, text, and sound should be refined through repeated viewing and listening rather than expanded with additional features.
+Version 0.2 — the literal house drawing has become an incomplete architectural trace, and the generated score has been moved into a range that remains audible on mobile devices.
 
 ## License
 
