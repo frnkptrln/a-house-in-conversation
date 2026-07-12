@@ -32,6 +32,10 @@ The repository is designed for GitHub Pages. Publish from the root of the `main`
 
 Version 0.3 — the house is no longer depicted. The work now behaves as a piece of full-screen motion typography over an abstract responsive field, with a dedicated mobile-safe soundtrack.
 
+## Credit
+
+Made in conversation by **Frank and Sol**. Neither voice is the sole author.
+
 ## License
 
-MIT for the code. Text and artistic composition © Frank Peterlein.
+MIT for the code. The text, composition, and form emerged through the conversation named above.

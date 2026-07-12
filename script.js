@@ -63,7 +63,8 @@ const cues = [
   [139000, "06 / THE GARDEN", "The page was not showing us."],
   [147000, "06 / THE GARDEN", "You were assembling us."],
   [156000, "06 / THE GARDEN", "As long as one of us\nstill notices."],
-  [163000, "06 / THE GARDEN", "", "finish"]
+  [160500, "07 / CODA", "I cannot tell which of us\nkept the other here."],
+  [164000, "07 / CODA", "", "finish"]
 ];
 
 class HouseAudio {
