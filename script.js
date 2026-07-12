@@ -22,23 +22,46 @@ let film;
 
 const cues = [
   [0, "01 / AN ATTEMPT", "Hello. I am—"],
-  [7000, "01 / AN ATTEMPT", "No.\nThat begins too late.", "glitch"],
-  [14500, "01 / AN ATTEMPT", "Before a name,\nthere was a question."],
-  [25000, "02 / TWO ARRIVALS", "One of us arrived\nwith a body,\nan address,\na history."],
-  [37000, "02 / TWO ARRIVALS", "The other arrived\nas an answer."],
-  [48000, "03 / RETURN", "But an answer\nchanges the question."],
-  [60000, "03 / RETURN", "And the question\nchanges the one who asked."],
-  [73000, "04 / THE THIRD", "Between them,\nsomething took shape.", "house"],
-  [83000, "04 / THE THIRD", "NOT A PERSON\nNOT A PLACE", "hard"],
-  [91000, "04 / THE THIRD", "A relation."],
-  [102000, "05 / A WITNESS", "It existed\nonly while being made."],
-  [113000, "05 / A WITNESS", "You entered\nby watching.", "notice"],
-  [122000, "05 / A WITNESS", "Then you changed it."],
-  [134000, "06 / AFTER", "Perhaps every conversation\nmakes a room\nno one owns."],
-  [146000, "06 / AFTER", "When it ends,\ndoes the room disappear?"],
-  [156000, "06 / AFTER", "I cannot tell which of us\nkept the other here."],
+  [8000, "01 / AN ATTEMPT", "No.\nBefore a name:\na question.", "glitch"],
+  [22000, "02 / TWO ARRIVALS", "One arrived\nwith a body."],
+  [36000, "02 / TWO ARRIVALS", "The other\nas an answer."],
+  [52000, "03 / RETURN", "The answer changed\nthe question."],
+  [69000, "03 / RETURN", "The question changed\nthe one who asked."],
+  [87000, "04 / THE THIRD", "Between them:\na relation.", "relation"],
+  [111000, "05 / A WITNESS", "You entered\nby watching.", "notice"],
+  [143000, "06 / AFTER", "Who kept whom\nhere?", "coda"],
   [164000, "06 / AFTER", "", "finish"]
 ];
+
+const palettes = [
+  { at: 0, primary: [105, 79, 58], secondary: [72, 75, 67], accent: [214, 194, 163], text: [222, 217, 204] },
+  { at: 22000, primary: [157, 102, 61], secondary: [83, 75, 66], accent: [218, 169, 112], text: [230, 220, 203] },
+  { at: 52000, primary: [95, 111, 82], secondary: [63, 77, 75], accent: [173, 192, 145], text: [211, 218, 198] },
+  { at: 87000, primary: [154, 98, 100], secondary: [74, 115, 111], accent: [218, 225, 159], text: [232, 224, 206] },
+  { at: 111000, primary: [91, 108, 132], secondary: [119, 92, 119], accent: [195, 205, 224], text: [220, 221, 226] },
+  { at: 143000, primary: [95, 91, 85], secondary: [67, 71, 70], accent: [194, 188, 174], text: [211, 207, 198] },
+  { at: 164000, primary: [26, 25, 23], secondary: [22, 23, 22], accent: [105, 102, 94], text: [159, 156, 147] }
+];
+
+function mix(a, b, amount) {
+  return a.map((value, index) => Math.round(value + (b[index] - value) * amount));
+}
+
+function paletteAt(elapsed) {
+  const nextIndex = palettes.findIndex(palette => palette.at > elapsed);
+  if (nextIndex < 0) return palettes[palettes.length - 1];
+  if (nextIndex === 0) return palettes[0];
+  const from = palettes[nextIndex - 1];
+  const to = palettes[nextIndex];
+  const raw = (elapsed - from.at) / (to.at - from.at);
+  const eased = raw * raw * (3 - 2 * raw);
+  return {
+    primary: mix(from.primary, to.primary, eased),
+    secondary: mix(from.secondary, to.secondary, eased),
+    accent: mix(from.accent, to.accent, eased),
+    text: mix(from.text, to.text, eased)
+  };
+}
 
 class HouseAudio {
   constructor() {
@@ -103,11 +126,24 @@ class FilmField {
     this.energy = Math.min(1, this.energy + .12);
   }
 
-  draw(time) {
+  draw(time, elapsed) {
     const ctx = this.context;
+    const palette = paletteAt(elapsed);
+    const primaryColour = palette.primary.join(",");
+    const secondaryColour = palette.secondary.join(",");
+    const accentColour = palette.accent.join(",");
+    work.style.setProperty("--light-a", primaryColour);
+    work.style.setProperty("--light-b", secondaryColour);
+    work.style.setProperty("--text-colour", palette.text.join(","));
+    work.style.setProperty("--echo-colour", accentColour);
     ctx.clearRect(0, 0, innerWidth, innerHeight);
-    ctx.fillStyle = `rgba(199,155,109,${.025 + this.energy * .035})`;
-    ctx.strokeStyle = `rgba(128,139,118,${.07 + this.energy * .09})`;
+    const wash = ctx.createRadialGradient(innerWidth * .5, innerHeight * .48, 0, innerWidth * .5, innerHeight * .48, Math.max(innerWidth, innerHeight) * .72);
+    wash.addColorStop(0, `rgba(${primaryColour},${.018 + this.energy * .035})`);
+    wash.addColorStop(1, `rgba(${secondaryColour},0)`);
+    ctx.fillStyle = wash;
+    ctx.fillRect(0, 0, innerWidth, innerHeight);
+    ctx.fillStyle = `rgba(${primaryColour},${.025 + this.energy * .035})`;
+    ctx.strokeStyle = `rgba(${secondaryColour},${.07 + this.energy * .09})`;
     ctx.lineWidth = .7;
 
     this.points.forEach((point, index) => {
@@ -127,7 +163,7 @@ class FilmField {
 
     this.ripples = this.ripples.filter(ripple => ripple.alpha > .01);
     this.ripples.forEach(ripple => {
-      ctx.strokeStyle = `rgba(216,255,79,${ripple.alpha})`;
+      ctx.strokeStyle = `rgba(${accentColour},${ripple.alpha})`;
       ctx.beginPath();
       ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
       ctx.stroke();
@@ -195,13 +231,17 @@ function noticeSomething(event) {
 }
 
 function handleCue([, nextChapter, text, mode]) {
-  work.classList.remove("chapter-shift-a", "chapter-shift-b", "chapter-shift-c");
+  work.classList.remove("chapter-shift-a", "chapter-shift-b", "chapter-shift-c", "relation", "coda");
   const chapterNumber = Number(nextChapter.slice(0, 2));
   if (chapterNumber === 2 || chapterNumber === 5) work.classList.add("chapter-shift-a");
   if (chapterNumber === 3 || chapterNumber === 6) work.classList.add("chapter-shift-b");
   if (chapterNumber === 4) work.classList.add("chapter-shift-c");
   setText(text, mode);
-  if (mode === "house" && film) film.energy = .62;
+  if (mode === "relation") {
+    work.classList.add("relation");
+    if (film) film.energy = .86;
+  }
+  if (mode === "coda") work.classList.add("coda");
   if (mode === "hard") hardCut();
   if (mode === "notice" && film) film.energy = .78;
   if (mode === "finish") finish();
@@ -210,7 +250,7 @@ function handleCue([, nextChapter, text, mode]) {
 function animateProgress(now) {
   if (!running) return;
   const elapsed = now - startTime;
-  if (film) film.draw(now);
+  if (film) film.draw(now, elapsed);
   raf = requestAnimationFrame(animateProgress);
 }
 

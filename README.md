@@ -30,7 +30,7 @@ The repository is designed for GitHub Pages. Publish from the root of the `main`
 
 ## Status
 
-Version 0.4 — the house is no longer depicted. A reduced text spine now follows one movement: two arrivals change each other, a relation takes shape, and the visitor discovers that watching has already made them part of it.
+Version 0.5 — nine textual moments carry the entire movement. A slowly changing colour score follows the embedded sound: copper, grey-green tension, overlapping relation, witness-blue, and a nearly colourless afterimage.
 
 ## Credit
 

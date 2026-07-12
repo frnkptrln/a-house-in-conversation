@@ -5,6 +5,10 @@
   --warm: #c79b6d;
   --green: #708267;
   --acid: #d8ff4f;
+  --light-a: 105, 79, 58;
+  --light-b: 72, 75, 67;
+  --text-colour: 222, 217, 204;
+  --echo-colour: 214, 194, 163;
   --serif: Georgia, "Times New Roman", serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
@@ -111,8 +115,8 @@ h1 {
   pointer-events: none;
   transition: transform 14s ease-in-out, opacity 4s ease;
 }
-.light-a { left: -17vw; top: 4vh; background: var(--warm); animation: light-a 23s ease-in-out infinite alternate; }
-.light-b { right: -23vw; bottom: -20vh; background: var(--green); animation: light-b 31s ease-in-out infinite alternate; }
+.light-a { left: -17vw; top: 4vh; background: rgb(var(--light-a)); animation: light-a 23s ease-in-out infinite alternate; }
+.light-b { right: -23vw; bottom: -20vh; background: rgb(var(--light-b)); animation: light-b 31s ease-in-out infinite alternate; }
 @keyframes light-a { to { transform: translate(28vw, 20vh) scale(.7); opacity: .16; } }
 @keyframes light-b { to { transform: translate(-34vw, -17vh) scale(1.2); opacity: .13; } }
 
@@ -133,6 +137,8 @@ h1 {
   transition: opacity 1.15s ease, transform 2.2s cubic-bezier(.2,.8,.2,1), filter .7s;
   z-index: 4;
 }
+
+.primary { color: rgb(var(--text-colour)); }
 
 .primary .line,
 .echo .line {
@@ -155,6 +161,26 @@ h1 {
 .chapter-shift-c .primary { font-family: var(--mono); text-transform: uppercase; }
 .chapter-shift-c .primary .line:first-child { -webkit-text-stroke: 1px var(--ink); color: transparent; }
 
+.relation .primary {
+  font-family: var(--serif);
+  text-transform: none;
+  font-style: italic;
+  letter-spacing: .01em;
+  text-shadow:
+    -.018em 0 rgba(var(--light-a), .44),
+    .018em 0 rgba(var(--light-b), .44);
+}
+
+.relation .primary .line:last-child {
+  font-size: 1.18em;
+  line-height: 1.25;
+}
+
+.coda .primary {
+  font-size: clamp(2rem, 4.7vw, 5rem);
+  letter-spacing: -.02em;
+}
+
 .primary.entering { animation: breathe-in 2s both; }
 .primary.leaving { opacity: 0; transform: translate(-50%, -51.5%); filter: blur(4px); }
 
@@ -164,7 +190,7 @@ h1 {
 }
 
 .echo {
-  color: var(--acid);
+  color: rgb(var(--echo-colour));
   opacity: 0;
   mix-blend-mode: screen;
   pointer-events: none;
