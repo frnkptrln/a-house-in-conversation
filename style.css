@@ -116,9 +116,9 @@ h1 {
 @keyframes light-a { to { transform: translate(28vw, 20vh) scale(.7); opacity: .16; } }
 @keyframes light-b { to { transform: translate(-34vw, -17vh) scale(1.2); opacity: .13; } }
 
-.chapter-shift-a .primary { left: 27%; top: 38%; text-align: left; width: min(52vw, 680px); }
-.chapter-shift-b .primary { left: 72%; top: 58%; text-align: right; width: min(50vw, 650px); }
-.chapter-shift-c .primary { top: 22%; font-size: clamp(1.2rem, 3vw, 3rem); letter-spacing: .02em; }
+.chapter-shift-a .primary { top: 47%; }
+.chapter-shift-b .primary { top: 52%; }
+.chapter-shift-c .primary { top: 48%; font-size: clamp(1.2rem, 3vw, 3rem); letter-spacing: .02em; }
 
 .primary, .echo {
   position: absolute;
@@ -130,7 +130,7 @@ h1 {
   font: 400 clamp(1.8rem, 5.5vw, 5.8rem)/1.02 var(--serif);
   letter-spacing: -.035em;
   white-space: pre-line;
-  transition: opacity .7s ease, transform 1.2s cubic-bezier(.2,.8,.2,1), filter .2s;
+  transition: opacity 1.15s ease, transform 2.2s cubic-bezier(.2,.8,.2,1), filter .7s;
   z-index: 4;
 }
 
@@ -141,27 +141,25 @@ h1 {
 }
 
 .primary.entering .line {
-  animation: line-arrive 1.8s cubic-bezier(.18,.8,.2,1) both;
+  animation: line-arrive 2.3s cubic-bezier(.18,.8,.2,1) both;
 }
-.primary.entering .line:nth-child(2) { animation-delay: .13s; }
-.primary.entering .line:nth-child(3) { animation-delay: .26s; }
-.primary.entering .line:nth-child(4) { animation-delay: .39s; }
+.primary.entering .line:nth-child(2) { animation-delay: .09s; }
+.primary.entering .line:nth-child(3) { animation-delay: .18s; }
+.primary.entering .line:nth-child(4) { animation-delay: .27s; }
 
 @keyframes line-arrive {
-  from { opacity: 0; transform: translateY(.7em) scale(.94); filter: blur(8px); letter-spacing: .04em; }
+  from { opacity: 0; transform: translateY(.28em) scale(.98); filter: blur(6px); letter-spacing: .015em; }
   to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); letter-spacing: inherit; }
 }
 
-.chapter-shift-a .primary .line:nth-child(even) { position: relative; left: 8vw; }
-.chapter-shift-b .primary .line:nth-child(odd) { position: relative; right: 7vw; }
 .chapter-shift-c .primary { font-family: var(--mono); text-transform: uppercase; }
 .chapter-shift-c .primary .line:first-child { -webkit-text-stroke: 1px var(--ink); color: transparent; }
 
-.primary.entering { animation: breathe-in 1.4s both; }
-.primary.leaving { opacity: 0; transform: translate(-50%, -54%); }
+.primary.entering { animation: breathe-in 2s both; }
+.primary.leaving { opacity: 0; transform: translate(-50%, -51.5%); filter: blur(4px); }
 
 @keyframes breathe-in {
-  from { opacity: 0; transform: translate(-50%, -42%); filter: blur(10px); }
+  from { opacity: 0; transform: translate(-50%, -47%); filter: blur(8px); }
   to { opacity: 1; transform: translate(-50%, -50%); filter: blur(0); }
 }
 

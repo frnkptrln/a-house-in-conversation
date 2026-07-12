@@ -164,7 +164,7 @@ function setText(text, mode = "") {
     primary.className = "primary entering";
     if (mode === "glitch") glitch();
     if (audio && text) audio.tone(110 * Math.pow(2, (text.length % 12) / 12), 1.8);
-  }, 550);
+  }, 850);
 }
 
 function glitch() {
