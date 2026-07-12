@@ -30,7 +30,7 @@ The repository is designed for GitHub Pages. Publish from the root of the `main`
 
 ## Status
 
-Version 0.5 — nine textual moments carry the entire movement. A slowly changing colour score follows the embedded sound: copper, grey-green tension, overlapping relation, witness-blue, and a nearly colourless afterimage.
+Version 0.6 — each textual moment now keeps one typographic identity through its full appearance and disappearance. Transitions breathe more slowly. At the centre, a single blackout leaves only the score before the two-colour relation opens like a spatial performance.
 
 ## Credit
 

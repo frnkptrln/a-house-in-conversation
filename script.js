@@ -179,7 +179,7 @@ function schedule(fn, delay) {
   timers.push(timer);
 }
 
-function setText(text, mode = "") {
+function setText(text, mode = "", styleClasses = []) {
   primary.classList.add("leaving");
   schedule(() => {
     const lines = text ? text.split("\n") : [];
@@ -197,10 +197,12 @@ function setText(text, mode = "") {
     });
     primary.replaceChildren(...primaryLines);
     echo.replaceChildren(...echoLines);
-    primary.className = "primary entering";
+    const styles = styleClasses.join(" ");
+    primary.className = `primary entering ${styles}`.trim();
+    echo.className = `echo ${styles}`.trim();
     if (mode === "glitch") glitch();
     if (audio && text) audio.tone(110 * Math.pow(2, (text.length % 12) / 12), 1.8);
-  }, 850);
+  }, 1600);
 }
 
 function glitch() {
@@ -217,6 +219,15 @@ function hardCut() {
   schedule(() => work.classList.remove("hard-cut"), 430);
 }
 
+function atonalRupture() {
+  schedule(() => work.classList.add("blackout"), 520);
+  schedule(() => {
+    work.classList.remove("blackout");
+    work.classList.add("exposed");
+  }, 1950);
+  schedule(() => work.classList.remove("exposed"), 7600);
+}
+
 function noticeSomething(event) {
   if (!running || event.target === soundFallback) return;
   const rect = field.getBoundingClientRect();
@@ -231,17 +242,19 @@ function noticeSomething(event) {
 }
 
 function handleCue([, nextChapter, text, mode]) {
-  work.classList.remove("chapter-shift-a", "chapter-shift-b", "chapter-shift-c", "relation", "coda");
   const chapterNumber = Number(nextChapter.slice(0, 2));
-  if (chapterNumber === 2 || chapterNumber === 5) work.classList.add("chapter-shift-a");
-  if (chapterNumber === 3 || chapterNumber === 6) work.classList.add("chapter-shift-b");
-  if (chapterNumber === 4) work.classList.add("chapter-shift-c");
-  setText(text, mode);
+  const styleClasses = [];
+  if (chapterNumber === 2 || chapterNumber === 5) styleClasses.push("layout-a");
+  if (chapterNumber === 3 || chapterNumber === 6) styleClasses.push("layout-b");
+  if (chapterNumber === 4) styleClasses.push("layout-c");
+  if (mode === "relation") styleClasses.push("relation");
+  if (mode === "coda") styleClasses.push("coda");
+  if (mode === "glitch") styleClasses.push("mono");
+  setText(text, mode, styleClasses);
   if (mode === "relation") {
-    work.classList.add("relation");
+    atonalRupture();
     if (film) film.energy = .86;
   }
-  if (mode === "coda") work.classList.add("coda");
   if (mode === "hard") hardCut();
   if (mode === "notice" && film) film.energy = .78;
   if (mode === "finish") finish();

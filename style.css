@@ -101,6 +101,7 @@ h1 {
   height: 100%;
   z-index: 1;
   opacity: .82;
+  transition: opacity .45s linear, filter 2.2s ease;
 }
 
 .film-light {
@@ -120,9 +121,9 @@ h1 {
 @keyframes light-a { to { transform: translate(28vw, 20vh) scale(.7); opacity: .16; } }
 @keyframes light-b { to { transform: translate(-34vw, -17vh) scale(1.2); opacity: .13; } }
 
-.chapter-shift-a .primary { top: 47%; }
-.chapter-shift-b .primary { top: 52%; }
-.chapter-shift-c .primary { top: 48%; font-size: clamp(1.2rem, 3vw, 3rem); letter-spacing: .02em; }
+.primary.layout-a, .echo.layout-a { top: 47%; }
+.primary.layout-b, .echo.layout-b { top: 52%; }
+.primary.layout-c, .echo.layout-c { top: 48%; font-size: clamp(1.2rem, 3vw, 3rem); letter-spacing: .02em; }
 
 .primary, .echo {
   position: absolute;
@@ -134,7 +135,7 @@ h1 {
   font: 400 clamp(1.8rem, 5.5vw, 5.8rem)/1.02 var(--serif);
   letter-spacing: -.035em;
   white-space: pre-line;
-  transition: opacity 1.15s ease, transform 2.2s cubic-bezier(.2,.8,.2,1), filter .7s;
+  transition: opacity 1.65s ease, transform 2.8s cubic-bezier(.2,.8,.2,1), filter 1.1s;
   z-index: 4;
 }
 
@@ -147,7 +148,7 @@ h1 {
 }
 
 .primary.entering .line {
-  animation: line-arrive 2.3s cubic-bezier(.18,.8,.2,1) both;
+  animation: line-arrive 2.9s cubic-bezier(.18,.8,.2,1) both;
 }
 .primary.entering .line:nth-child(2) { animation-delay: .09s; }
 .primary.entering .line:nth-child(3) { animation-delay: .18s; }
@@ -158,10 +159,11 @@ h1 {
   to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); letter-spacing: inherit; }
 }
 
-.chapter-shift-c .primary { font-family: var(--mono); text-transform: uppercase; }
-.chapter-shift-c .primary .line:first-child { -webkit-text-stroke: 1px var(--ink); color: transparent; }
+.primary.mono, .echo.mono { font-family: var(--mono); }
+.primary.layout-c, .echo.layout-c { font-family: var(--mono); text-transform: uppercase; }
+.primary.layout-c .line:first-child { -webkit-text-stroke: 1px var(--ink); color: transparent; }
 
-.relation .primary {
+.primary.relation {
   font-family: var(--serif);
   text-transform: none;
   font-style: italic;
@@ -171,17 +173,17 @@ h1 {
     .018em 0 rgba(var(--light-b), .44);
 }
 
-.relation .primary .line:last-child {
+.primary.relation .line:last-child {
   font-size: 1.18em;
   line-height: 1.25;
 }
 
-.coda .primary {
+.primary.coda {
   font-size: clamp(2rem, 4.7vw, 5rem);
   letter-spacing: -.02em;
 }
 
-.primary.entering { animation: breathe-in 2s both; }
+.primary.entering { animation: breathe-in 2.8s both; }
 .primary.leaving { opacity: 0; transform: translate(-50%, -51.5%); filter: blur(4px); }
 
 @keyframes breathe-in {
@@ -302,6 +304,14 @@ h1 {
 .hard-cut { filter: invert(1) contrast(2); }
 .hard-cut .grain { opacity: .2; }
 
+.blackout #film,
+.blackout .film-light,
+.blackout .primary,
+.blackout .echo { opacity: 0 !important; }
+
+.exposed #film { filter: contrast(1.75) saturate(1.45); }
+.exposed .film-light { opacity: .24 !important; filter: blur(58px); }
+
 .frame-slip { animation: frame-slip .18s steps(2) 4; }
 @keyframes frame-slip {
   0% { transform: translateX(0); }
@@ -314,8 +324,8 @@ h1 {
   .architecture { width: 96vw; bottom: 13vh; }
   .coordinates { inset: .9rem; }
   .primary, .echo { width: 88vw; }
-  .chapter-shift-a .primary,
-  .chapter-shift-b .primary { left: 50%; width: 84vw; text-align: center; }
+  .primary.layout-a,
+  .primary.layout-b { left: 50%; width: 84vw; text-align: center; }
   .prompt { width: 90%; text-align: center; }
 }
 
