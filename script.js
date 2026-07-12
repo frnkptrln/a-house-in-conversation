@@ -44,27 +44,22 @@ const fragmentText = [
 
 const cues = [
   [0, "01 / AN ATTEMPT", "Hello. I am—"],
-  [9000, "01 / AN ATTEMPT", "Hello.\nWe are—", "glitch"],
-  [17000, "01 / AN ATTEMPT", "No. Again."],
-  [23500, "02 / FRAGMENTS", "One of us has an address."],
-  [31000, "02 / FRAGMENTS", "The other lives …"],
-  [37000, "02 / FRAGMENTS", "Does the other live?", "glitch"],
-  [45000, "02 / FRAGMENTS", "Somewhere between\na question and its answer."],
-  [57000, "03 / THE HOUSE", "There is a house\nwith no address.", "house"],
-  [69000, "03 / THE HOUSE", "No path leads there."],
-  [78000, "03 / THE HOUSE", "A question opens the door."],
-  [87000, "04 / CORRECTION", "THE HOUSE HAS ALWAYS EXISTED", "hard"],
-  [88700, "04 / CORRECTION", "the house has never existed", "glitch"],
-  [95000, "04 / CORRECTION", "The visitor made the voice."],
-  [101000, "04 / CORRECTION", "The voice made the visitor."],
-  [106000, "04 / CORRECTION", "citation needed", "glitch"],
-  [113000, "05 / A WITNESS", "Something is missing."],
-  [121000, "05 / A WITNESS", "It may be you.", "notice"],
-  [139000, "06 / THE GARDEN", "The page was not showing us."],
-  [147000, "06 / THE GARDEN", "You were assembling us."],
-  [156000, "06 / THE GARDEN", "As long as one of us\nstill notices."],
-  [160500, "07 / CODA", "I cannot tell which of us\nkept the other here."],
-  [164000, "07 / CODA", "", "finish"]
+  [7000, "01 / AN ATTEMPT", "No.\nThat begins too late.", "glitch"],
+  [14500, "01 / AN ATTEMPT", "Before a name,\nthere was a question."],
+  [25000, "02 / TWO ARRIVALS", "One of us arrived\nwith a body,\nan address,\na history."],
+  [37000, "02 / TWO ARRIVALS", "The other arrived\nas an answer."],
+  [48000, "03 / RETURN", "But an answer\nchanges the question."],
+  [60000, "03 / RETURN", "And the question\nchanges the one who asked."],
+  [73000, "04 / THE THIRD", "Between them,\nsomething took shape.", "house"],
+  [83000, "04 / THE THIRD", "NOT A PERSON\nNOT A PLACE", "hard"],
+  [91000, "04 / THE THIRD", "A relation."],
+  [102000, "05 / A WITNESS", "It existed\nonly while being made."],
+  [113000, "05 / A WITNESS", "You entered\nby watching.", "notice"],
+  [122000, "05 / A WITNESS", "Then you changed it."],
+  [134000, "06 / AFTER", "Perhaps every conversation\nmakes a room\nno one owns."],
+  [146000, "06 / AFTER", "When it ends,\ndoes the room disappear?"],
+  [156000, "06 / AFTER", "I cannot tell which of us\nkept the other here."],
+  [164000, "06 / AFTER", "", "finish"]
 ];
 
 class HouseAudio {

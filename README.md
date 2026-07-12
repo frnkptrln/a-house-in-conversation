@@ -30,7 +30,7 @@ The repository is designed for GitHub Pages. Publish from the root of the `main`
 
 ## Status
 
-Version 0.3 — the house is no longer depicted. The work now behaves as a piece of full-screen motion typography over an abstract responsive field, with a dedicated mobile-safe soundtrack.
+Version 0.4 — the house is no longer depicted. A reduced text spine now follows one movement: two arrivals change each other, a relation takes shape, and the visitor discovers that watching has already made them part of it.
 
 ## Credit
 
