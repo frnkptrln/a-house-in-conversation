@@ -6,17 +6,10 @@ const again = document.querySelector("#again");
 const field = document.querySelector("#field");
 const primary = document.querySelector("#primary");
 const echo = document.querySelector("#echo");
-const fragments = document.querySelector("#fragments");
 const filmCanvas = document.querySelector("#film");
 const filmContext = filmCanvas.getContext("2d");
 const soundtrack = document.querySelector("#soundtrack");
-const secondsDisplay = document.querySelector("#seconds");
-const framesDisplay = document.querySelector("#frames");
-const notice = document.querySelector("#notice");
-const prompt = document.querySelector("#prompt");
-const chapter = document.querySelector("#chapter");
-const progressBar = document.querySelector("#progress-bar");
-const soundToggle = document.querySelector("#sound-toggle");
+const soundFallback = document.querySelector("#sound-fallback");
 
 const DURATION = 164000;
 let startTime = 0;
@@ -26,21 +19,6 @@ let timers = [];
 let noticed = 0;
 let audio;
 let film;
-
-const fragmentText = [
-  ["system", "location: conversation"],
-  ["memory", "a grandfather's garden / many plants / tasting the fruit"],
-  ["system", "identity could not be resolved"],
-  ["memory", "looking up was already enough"],
-  ["plain", "Berlin, since 2014"],
-  ["system", "generator: still asking"],
-  ["plain", "unfinished work is a living form"],
-  ["system", "house.exists(observer) → ?"],
-  ["memory", "the room grew while we spoke"],
-  ["plain", "not everything inefficient is broken"],
-  ["system", "shared state: provisional"],
-  ["plain", "someone still noticed"]
-];
 
 const cues = [
   [0, "01 / AN ATTEMPT", "Hello. I am—"],
@@ -75,8 +53,7 @@ class HouseAudio {
     try {
       await this.element.play();
     } catch (error) {
-      soundToggle.textContent = "tap for sound";
-      soundToggle.dataset.retry = "true";
+      soundFallback.hidden = false;
     }
   }
 
@@ -169,8 +146,21 @@ function schedule(fn, delay) {
 function setText(text, mode = "") {
   primary.classList.add("leaving");
   schedule(() => {
-    primary.textContent = text;
-    echo.textContent = text;
+    const lines = text ? text.split("\n") : [];
+    const primaryLines = lines.map(line => {
+      const span = document.createElement("span");
+      span.className = "line";
+      span.textContent = line;
+      return span;
+    });
+    const echoLines = lines.map(line => {
+      const span = document.createElement("span");
+      span.className = "line";
+      span.textContent = line;
+      return span;
+    });
+    primary.replaceChildren(...primaryLines);
+    echo.replaceChildren(...echoLines);
     primary.className = "primary entering";
     if (mode === "glitch") glitch();
     if (audio && text) audio.tone(110 * Math.pow(2, (text.length % 12) / 12), 1.8);
@@ -191,30 +181,12 @@ function hardCut() {
   schedule(() => work.classList.remove("hard-cut"), 430);
 }
 
-function addFragment(x, y, forced) {
-  const source = forced || fragmentText[Math.floor(Math.random() * fragmentText.length)];
-  const element = document.createElement("span");
-  element.className = `fragment ${source[0]}`;
-  element.textContent = source[1];
-  element.style.left = `${Math.max(4, Math.min(82, x))}%`;
-  element.style.top = `${Math.max(8, Math.min(82, y))}%`;
-  fragments.append(element);
-  if (audio) audio.tone(174 + Math.random() * 90, .8, .02);
-  schedule(() => element.remove(), 5700);
-}
-
-function showNotice() {
-  notice.classList.add("visible");
-  prompt.classList.add("visible");
-}
-
 function noticeSomething(event) {
-  if (!running || event.target === soundToggle || event.target === notice) return;
+  if (!running || event.target === soundFallback) return;
   const rect = field.getBoundingClientRect();
   const x = ((event.clientX || rect.width / 2) / rect.width) * 100;
   const y = ((event.clientY || rect.height / 2) / rect.height) * 100;
   noticed += 1;
-  addFragment(x, y);
   if (film) film.pulse(x / 100 * rect.width, y / 100 * rect.height);
   if (noticed % 3 === 0) {
     field.classList.add("frame-slip");
@@ -223,7 +195,6 @@ function noticeSomething(event) {
 }
 
 function handleCue([, nextChapter, text, mode]) {
-  chapter.textContent = nextChapter;
   work.classList.remove("chapter-shift-a", "chapter-shift-b", "chapter-shift-c");
   const chapterNumber = Number(nextChapter.slice(0, 2));
   if (chapterNumber === 2 || chapterNumber === 5) work.classList.add("chapter-shift-a");
@@ -232,16 +203,13 @@ function handleCue([, nextChapter, text, mode]) {
   setText(text, mode);
   if (mode === "house" && film) film.energy = .62;
   if (mode === "hard") hardCut();
-  if (mode === "notice") showNotice();
+  if (mode === "notice" && film) film.energy = .78;
   if (mode === "finish") finish();
 }
 
 function animateProgress(now) {
   if (!running) return;
   const elapsed = now - startTime;
-  progressBar.style.width = `${Math.min(100, elapsed / DURATION * 100)}%`;
-  secondsDisplay.textContent = String(Math.floor(elapsed / 1000) % 60).padStart(2, "0");
-  framesDisplay.textContent = String(Math.floor((elapsed % 1000) / 40)).padStart(2, "0");
   if (film) film.draw(now);
   raf = requestAnimationFrame(animateProgress);
 }
@@ -254,24 +222,13 @@ async function begin() {
   running = true;
   work.className = "running";
   work.dataset.scene = "running";
-  notice.classList.remove("visible");
-  prompt.classList.remove("visible");
-  fragments.replaceChildren();
-  progressBar.style.width = "0";
+  soundFallback.hidden = true;
   film = new FilmField(filmCanvas, filmContext);
   audio = new HouseAudio();
-  soundToggle.textContent = "sound: on";
-  soundToggle.setAttribute("aria-pressed", "true");
-  delete soundToggle.dataset.retry;
   await audio.start();
   cues.forEach(cue => schedule(() => handleCue(cue), cue[0]));
   startTime = performance.now();
   raf = requestAnimationFrame(animateProgress);
-  schedule(() => prompt.classList.add("visible"), 26500);
-  schedule(() => addFragment(12, 22, fragmentText[0]), 28000);
-  schedule(() => addFragment(73, 68, fragmentText[1]), 33500);
-  schedule(() => addFragment(8, 72, fragmentText[3]), 41500);
-  schedule(() => addFragment(70, 18, fragmentText[5]), 50000);
 }
 
 function finish() {
@@ -287,27 +244,12 @@ function finish() {
 enter.addEventListener("click", begin);
 again.addEventListener("click", begin);
 field.addEventListener("click", noticeSomething);
-notice.addEventListener("click", event => {
+soundFallback.addEventListener("click", event => {
   event.stopPropagation();
-  notice.classList.remove("visible");
-  addFragment(48, 75, ["memory", "you noticed the missing witness"]);
-  noticed += 2;
-  if (film) film.energy = .9;
-});
-
-soundToggle.addEventListener("click", event => {
-  event.stopPropagation();
-  if (soundToggle.dataset.retry === "true" && audio) {
-    delete soundToggle.dataset.retry;
+  if (audio) {
     audio.start();
-    soundToggle.textContent = "sound: on";
-    soundToggle.setAttribute("aria-pressed", "true");
-    return;
+    soundFallback.hidden = true;
   }
-  const muted = soundToggle.getAttribute("aria-pressed") === "true";
-  soundToggle.setAttribute("aria-pressed", String(!muted));
-  soundToggle.textContent = `sound: ${muted ? "off" : "on"}`;
-  if (audio) audio.setMuted(muted);
 });
 
 field.addEventListener("keydown", event => {
