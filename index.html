@@ -23,6 +23,7 @@
         <span aria-current="page">house</span>
         <a href="rooms/conversation/">conversation</a>
         <a href="rooms/colour/">colour</a>
+        <a href="rooms/garden/">garden</a>
       </nav>
 
       <nav class="rooms" aria-label="Rooms in the house">
@@ -35,14 +36,19 @@
           <span class="aperture" aria-hidden="true"></span>
           <span class="room-name">the colour room</span>
         </a>
+
+        <a class="room room-garden" data-room="garden" href="rooms/garden/">
+          <span class="aperture" aria-hidden="true"></span>
+          <span class="room-name">the garden</span>
+        </a>
       </nav>
 
       <div class="unformed" aria-hidden="true">
-        <i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i>
       </div>
 
       <button id="sound" class="sound" type="button" aria-pressed="false">silence</button>
-      <p id="house-status" class="visually-hidden" aria-live="polite">Two rooms are open.</p>
+      <p id="house-status" class="visually-hidden" aria-live="polite">Three rooms are open.</p>
     </section>
   </main>
 
@@ -50,6 +56,7 @@
     <nav class="without-script" aria-label="Rooms">
       <a href="rooms/conversation/">The Conversation Room</a>
       <a href="rooms/colour/">The Colour Room</a>
+      <a href="rooms/garden/">The Garden</a>
     </nav>
   </noscript>
   <script src="script.js"></script>
