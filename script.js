@@ -1,320 +1,375 @@
 "use strict";
 
-const work = document.querySelector("#work");
+const threshold = document.querySelector("#threshold");
+const canvas = document.querySelector("#threshold-field");
+const context = canvas.getContext("2d");
 const enter = document.querySelector("#enter");
-const again = document.querySelector("#again");
-const field = document.querySelector("#field");
-const primary = document.querySelector("#primary");
-const echo = document.querySelector("#echo");
-const filmCanvas = document.querySelector("#film");
-const filmContext = filmCanvas.getContext("2d");
-const soundtrack = document.querySelector("#soundtrack");
-const soundFallback = document.querySelector("#sound-fallback");
+const soundControl = document.querySelector("#sound");
+const houseStatus = document.querySelector("#house-status");
+const rooms = [...document.querySelectorAll(".room")];
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const DURATION = 164000;
-let startTime = 0;
-let running = false;
-let raf = 0;
-let timers = [];
-let noticed = 0;
-let audio;
-let film;
+let width = innerWidth;
+let height = innerHeight;
+let ratio = 1;
+let animationFrame = 0;
+let entered = false;
+let pulse = 0;
+let pointer = { x: width / 2, y: height / 2, visible: false };
 
-const cues = [
-  [0, "01 / AN ATTEMPT", "Hello. I am—"],
-  [8000, "01 / AN ATTEMPT", "No.\nBefore a name:\na question.", "glitch"],
-  [22000, "02 / TWO ARRIVALS", "One arrived\nwith a body."],
-  [36000, "02 / TWO ARRIVALS", "The other\nas an answer."],
-  [52000, "03 / RETURN", "The answer changed\nthe question."],
-  [69000, "03 / RETURN", "The question changed\nthe one who asked."],
-  [87000, "04 / THE THIRD", "Between them:\na relation.", "relation"],
-  [111000, "05 / A WITNESS", "You entered\nby watching.", "notice"],
-  [143000, "06 / AFTER", "Who kept whom\nhere?", "coda"],
-  [164000, "06 / AFTER", "", "finish"]
+const unformed = [
+  { x: .13, y: .20, phase: .7 },
+  { x: .51, y: .18, phase: 2.2 },
+  { x: .90, y: .25, phase: 4.1 },
+  { x: .47, y: .88, phase: 1.4 },
+  { x: .82, y: .84, phase: 5.3 }
 ];
 
-const palettes = [
-  { at: 0, primary: [105, 79, 58], secondary: [72, 75, 67], accent: [214, 194, 163], text: [222, 217, 204] },
-  { at: 22000, primary: [157, 102, 61], secondary: [83, 75, 66], accent: [218, 169, 112], text: [230, 220, 203] },
-  { at: 52000, primary: [95, 111, 82], secondary: [63, 77, 75], accent: [173, 192, 145], text: [211, 218, 198] },
-  { at: 87000, primary: [154, 98, 100], secondary: [74, 115, 111], accent: [218, 225, 159], text: [232, 224, 206] },
-  { at: 111000, primary: [91, 108, 132], secondary: [119, 92, 119], accent: [195, 205, 224], text: [220, 221, 226] },
-  { at: 143000, primary: [95, 91, 85], secondary: [67, 71, 70], accent: [194, 188, 174], text: [211, 207, 198] },
-  { at: 164000, primary: [26, 25, 23], secondary: [22, 23, 22], accent: [105, 102, 94], text: [159, 156, 147] }
-];
+const motes = Array.from({ length: 46 }, (_, index) => ({
+  x: (index * 127.1 % 997) / 997,
+  y: (index * 83.7 % 991) / 991,
+  phase: index * .73,
+  size: index % 8 === 0 ? 1.7 : .65
+}));
 
-function mix(a, b, amount) {
-  return a.map((value, index) => Math.round(value + (b[index] - value) * amount));
+function readVisits() {
+  try {
+    return JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+  } catch (error) {
+    return {};
+  }
 }
 
-function paletteAt(elapsed) {
-  const nextIndex = palettes.findIndex(palette => palette.at > elapsed);
-  if (nextIndex < 0) return palettes[palettes.length - 1];
-  if (nextIndex === 0) return palettes[0];
-  const from = palettes[nextIndex - 1];
-  const to = palettes[nextIndex];
-  const raw = (elapsed - from.at) / (to.at - from.at);
-  const eased = raw * raw * (3 - 2 * raw);
+const visits = readVisits();
+rooms.forEach(room => {
+  if (visits[room.dataset.room]) room.classList.add("visited");
+});
+
+const visitedCount = rooms.filter(room => room.classList.contains("visited")).length;
+if (visitedCount === 1) houseStatus.textContent = "One room has left a trace.";
+if (visitedCount === rooms.length) houseStatus.textContent = "Two rooms have left traces.";
+
+function resize() {
+  ratio = Math.min(devicePixelRatio || 1, 2);
+  width = innerWidth;
+  height = innerHeight;
+  canvas.width = Math.round(width * ratio);
+  canvas.height = Math.round(height * ratio);
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  if (reducedMotion) draw(0);
+}
+
+function roomCentre(room) {
+  const rect = room.getBoundingClientRect();
   return {
-    primary: mix(from.primary, to.primary, eased),
-    secondary: mix(from.secondary, to.secondary, eased),
-    accent: mix(from.accent, to.accent, eased),
-    text: mix(from.text, to.text, eased)
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+    radius: Math.min(rect.width, rect.height) * .42
   };
 }
 
-class HouseAudio {
+function paintField(x, y, radius, colour, strength) {
+  const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+  gradient.addColorStop(0, `rgba(${colour},${strength * .22})`);
+  gradient.addColorStop(.42, `rgba(${colour},${strength * .075})`);
+  gradient.addColorStop(1, `rgba(${colour},0)`);
+  context.fillStyle = gradient;
+  context.beginPath();
+  context.arc(x, y, radius, 0, Math.PI * 2);
+  context.fill();
+}
+
+function draw(time) {
+  const movementTime = reducedMotion ? 0 : time;
+  const conversation = roomCentre(document.querySelector(".room-conversation"));
+  const colour = roomCentre(document.querySelector(".room-colour"));
+  const energy = entered ? 1 : .34;
+  pulse *= .965;
+
+  context.clearRect(0, 0, width, height);
+  context.save();
+  context.globalCompositeOperation = "screen";
+
+  paintField(
+    conversation.x + Math.sin(movementTime * .00011) * 18,
+    conversation.y + Math.cos(movementTime * .00009) * 13,
+    conversation.radius * 1.45,
+    "167,139,250",
+    energy + (visits.conversation ? .24 : 0)
+  );
+  paintField(
+    colour.x + Math.cos(movementTime * .0001) * 21,
+    colour.y + Math.sin(movementTime * .00012) * 15,
+    colour.radius * 1.5,
+    "255,111,145",
+    energy * .72 + (visits.colour ? .2 : 0)
+  );
+  paintField(
+    colour.x - Math.sin(movementTime * .00008) * 19,
+    colour.y - Math.cos(movementTime * .0001) * 17,
+    colour.radius * 1.43,
+    "90,141,255",
+    energy * .68 + (visits.colour ? .2 : 0)
+  );
+
+  paintField(
+    (conversation.x + colour.x) / 2,
+    (conversation.y + colour.y) / 2,
+    Math.min(width, height) * (.08 + pulse * .035),
+    "112,225,209",
+    (.08 + pulse * .09) * energy
+  );
+
+  for (const trace of unformed) {
+    const x = width * trace.x + Math.sin(movementTime * .00009 + trace.phase) * 9;
+    const y = height * trace.y + Math.cos(movementTime * .00008 + trace.phase) * 7;
+    paintField(x, y, 26 + 8 * Math.sin(movementTime * .0001 + trace.phase), "174,166,226", .16 * energy);
+  }
+
+  context.fillStyle = `rgba(236,234,244,${.035 * energy})`;
+  for (const mote of motes) {
+    const x = mote.x * width + Math.sin(movementTime * .0001 + mote.phase) * (12 + pulse * 20);
+    const y = mote.y * height + Math.cos(movementTime * .00008 + mote.phase) * (9 + pulse * 14);
+    context.beginPath();
+    context.arc(x, y, mote.size, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  if (pointer.visible) {
+    paintField(pointer.x, pointer.y, 80 + pulse * 85, "112,225,209", .16 + pulse * .24);
+  }
+
+  context.restore();
+  if (!reducedMotion) animationFrame = requestAnimationFrame(draw);
+}
+
+class ThresholdAudio {
   constructor() {
-    this.element = soundtrack;
+    this.context = null;
+    this.master = null;
+    this.filter = null;
+    this.voices = [];
     this.muted = false;
+    this.motifTimer = 0;
+    this.motifForm = 0;
   }
 
   async start() {
-    this.element.currentTime = 0;
-    this.element.volume = 0.82;
-    this.element.muted = false;
-    try {
-      await this.element.play();
-    } catch (error) {
-      soundFallback.hidden = false;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      soundControl.hidden = true;
+      return;
     }
-  }
 
-  tone() {}
-  click() {}
+    if (this.context) {
+      await this.context.resume();
+      this.fadeTo(this.muted ? .0001 : .72, 1.8);
+      this.scheduleMotif(2.8);
+      return;
+    }
 
-  setMuted(value) {
-    this.muted = value;
-    this.element.muted = value;
-  }
+    this.context = new AudioContext();
+    this.master = this.context.createGain();
+    this.master.gain.value = .0001;
+    this.master.connect(this.context.destination);
 
-  stop() {
-    this.element.pause();
-    this.element.currentTime = 0;
-  }
-}
+    this.filter = this.context.createBiquadFilter();
+    this.filter.type = "lowpass";
+    this.filter.frequency.value = 620;
+    this.filter.Q.value = .45;
+    this.filter.connect(this.master);
 
-class FilmField {
-  constructor(canvas, context) {
-    this.canvas = canvas;
-    this.context = context;
-    this.points = [];
-    this.ripples = [];
-    this.energy = 0.18;
-    this.resize = this.resize.bind(this);
-    addEventListener("resize", this.resize);
-    this.resize();
-  }
+    const tones = [
+      { frequency: 82.41, gain: .026, type: "sine", pan: -.38 },
+      { frequency: 123.47, gain: .016, type: "sine", pan: .34 },
+      { frequency: 164.81, gain: .009, type: "triangle", pan: .06 }
+    ];
 
-  resize() {
-    const ratio = Math.min(devicePixelRatio || 1, 2);
-    this.canvas.width = innerWidth * ratio;
-    this.canvas.height = innerHeight * ratio;
-    this.canvas.style.width = `${innerWidth}px`;
-    this.canvas.style.height = `${innerHeight}px`;
-    this.context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    this.points = Array.from({ length: innerWidth < 650 ? 34 : 58 }, (_, index) => ({
-      x: (index * 127.1) % innerWidth,
-      y: (index * 83.7) % innerHeight,
-      phase: index * .71,
-      size: index % 9 === 0 ? 2.2 : .7
-    }));
-  }
-
-  pulse(x, y) {
-    this.ripples.push({ x, y, radius: 4, alpha: .55 });
-    this.energy = Math.min(1, this.energy + .12);
-  }
-
-  draw(time, elapsed) {
-    const ctx = this.context;
-    const palette = paletteAt(elapsed);
-    const primaryColour = palette.primary.join(",");
-    const secondaryColour = palette.secondary.join(",");
-    const accentColour = palette.accent.join(",");
-    work.style.setProperty("--light-a", primaryColour);
-    work.style.setProperty("--light-b", secondaryColour);
-    work.style.setProperty("--text-colour", palette.text.join(","));
-    work.style.setProperty("--echo-colour", accentColour);
-    ctx.clearRect(0, 0, innerWidth, innerHeight);
-    const wash = ctx.createRadialGradient(innerWidth * .5, innerHeight * .48, 0, innerWidth * .5, innerHeight * .48, Math.max(innerWidth, innerHeight) * .72);
-    wash.addColorStop(0, `rgba(${primaryColour},${.018 + this.energy * .035})`);
-    wash.addColorStop(1, `rgba(${secondaryColour},0)`);
-    ctx.fillStyle = wash;
-    ctx.fillRect(0, 0, innerWidth, innerHeight);
-    ctx.fillStyle = `rgba(${primaryColour},${.025 + this.energy * .035})`;
-    ctx.strokeStyle = `rgba(${secondaryColour},${.07 + this.energy * .09})`;
-    ctx.lineWidth = .7;
-
-    this.points.forEach((point, index) => {
-      const x = point.x + Math.sin(time * .00012 + point.phase) * (14 + this.energy * 30);
-      const y = point.y + Math.cos(time * .00009 + point.phase) * (10 + this.energy * 20);
-      ctx.beginPath();
-      ctx.arc(x, y, point.size, 0, Math.PI * 2);
-      ctx.fill();
-      if (index % 4 === 0) {
-        const next = this.points[(index + 7) % this.points.length];
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(next.x, next.y);
-        ctx.stroke();
+    for (const tone of tones) {
+      const oscillator = this.context.createOscillator();
+      const gain = this.context.createGain();
+      const panner = this.context.createStereoPanner ? this.context.createStereoPanner() : null;
+      oscillator.type = tone.type;
+      oscillator.frequency.value = tone.frequency;
+      gain.gain.value = tone.gain;
+      if (panner) {
+        panner.pan.value = tone.pan;
+        oscillator.connect(gain).connect(panner).connect(this.filter);
+      } else {
+        oscillator.connect(gain).connect(this.filter);
       }
-    });
+      oscillator.start();
+      this.voices.push(oscillator);
+    }
 
-    this.ripples = this.ripples.filter(ripple => ripple.alpha > .01);
-    this.ripples.forEach(ripple => {
-      ctx.strokeStyle = `rgba(${accentColour},${ripple.alpha})`;
-      ctx.beginPath();
-      ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
-      ctx.stroke();
-      ripple.radius += 1.8;
-      ripple.alpha *= .972;
-    });
-    this.energy += (.18 - this.energy) * .003;
+    const noiseBuffer = this.context.createBuffer(1, this.context.sampleRate * 3, this.context.sampleRate);
+    const noise = noiseBuffer.getChannelData(0);
+    let previous = 0;
+    for (let index = 0; index < noise.length; index++) {
+      previous = previous * .985 + (Math.random() * 2 - 1) * .035;
+      noise[index] = previous;
+    }
+    const noiseSource = this.context.createBufferSource();
+    const noiseGain = this.context.createGain();
+    noiseSource.buffer = noiseBuffer;
+    noiseSource.loop = true;
+    noiseGain.gain.value = .012;
+    noiseSource.connect(noiseGain).connect(this.filter);
+    noiseSource.start();
+
+    const lfo = this.context.createOscillator();
+    const lfoDepth = this.context.createGain();
+    lfo.frequency.value = .035;
+    lfoDepth.gain.value = 4.5;
+    lfo.connect(lfoDepth);
+    this.voices.forEach(voice => lfoDepth.connect(voice.detune));
+    lfo.start();
+
+    await this.context.resume();
+    this.fadeTo(this.muted ? .0001 : .72, 3.2);
+    this.scheduleMotif(2.8);
+  }
+
+  playSeed(frequency, when, pan, duration = 2.7) {
+    if (!this.context || !this.filter) return;
+
+    const oscillator = this.context.createOscillator();
+    const gain = this.context.createGain();
+    const panner = this.context.createStereoPanner ? this.context.createStereoPanner() : null;
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, when);
+    gain.gain.setValueAtTime(.0001, when);
+    gain.gain.exponentialRampToValueAtTime(.019, when + .34);
+    gain.gain.exponentialRampToValueAtTime(.0001, when + duration);
+
+    if (panner) {
+      panner.pan.setValueAtTime(pan, when);
+      oscillator.connect(gain).connect(panner).connect(this.filter);
+    } else {
+      oscillator.connect(gain).connect(this.filter);
+    }
+
+    oscillator.start(when);
+    oscillator.stop(when + duration + .08);
+  }
+
+  scheduleMotif(delay = 0) {
+    if (!this.context || this.motifTimer) return;
+
+    this.motifTimer = window.setTimeout(() => {
+      this.motifTimer = 0;
+
+      if (!this.context || document.hidden || this.context.state !== "running") {
+        this.scheduleMotif(2.5);
+        return;
+      }
+
+      const forms = [
+        [0, 2.75, 5.9, 9.15],
+        [0, 3.2, 6.05, 9.8],
+        [0, 2.9, 6.4, 9.35]
+      ];
+      const notes = [
+        { frequency: 329.63, pan: -.38 },
+        { frequency: 493.88, pan: .34 },
+        { frequency: 369.99, pan: -.12 },
+        { frequency: 440, pan: .22 }
+      ];
+      const form = forms[this.motifForm];
+      const now = this.context.currentTime + .08;
+
+      notes.forEach((note, index) => {
+        this.playSeed(note.frequency, now + form[index], note.pan, index === 3 ? 3.5 : 2.7);
+      });
+
+      this.motifForm = (this.motifForm + 1) % forms.length;
+      this.scheduleMotif(form[3] + 13 + this.motifForm * 1.7);
+    }, delay * 1000);
+  }
+
+  fadeTo(value, duration) {
+    if (!this.context || !this.master) return;
+    const now = this.context.currentTime;
+    this.master.gain.cancelScheduledValues(now);
+    this.master.gain.setValueAtTime(Math.max(.0001, this.master.gain.value), now);
+    this.master.gain.exponentialRampToValueAtTime(Math.max(.0001, value), now + duration);
+  }
+
+  lean(roomName) {
+    if (!this.context || !this.filter) return;
+    const now = this.context.currentTime;
+    const target = roomName === "colour" ? 940 : 480;
+    this.filter.frequency.cancelScheduledValues(now);
+    this.filter.frequency.setValueAtTime(this.filter.frequency.value, now);
+    this.filter.frequency.exponentialRampToValueAtTime(target, now + 1.8);
+  }
+
+  toggle() {
+    this.muted = !this.muted;
+    if (!this.muted && this.context?.state === "suspended") this.context.resume();
+    this.fadeTo(this.muted ? .0001 : .72, 1.1);
+    return this.muted;
+  }
+
+  fadeOut() {
+    window.clearTimeout(this.motifTimer);
+    this.motifTimer = 0;
+    this.fadeTo(.0001, 1.05);
   }
 }
 
-function schedule(fn, delay) {
-  const timer = window.setTimeout(fn, delay);
-  timers.push(timer);
+const thresholdAudio = new ThresholdAudio();
+
+async function crossThreshold() {
+  entered = true;
+  threshold.dataset.state = "house";
+  pulse = .7;
+  await thresholdAudio.start();
 }
 
-function setText(text, mode = "", styleClasses = []) {
-  primary.classList.add("leaving");
-  schedule(() => {
-    const lines = text ? text.split("\n") : [];
-    const primaryLines = lines.map(line => {
-      const span = document.createElement("span");
-      span.className = "line";
-      span.textContent = line;
-      return span;
-    });
-    const echoLines = lines.map(line => {
-      const span = document.createElement("span");
-      span.className = "line";
-      span.textContent = line;
-      return span;
-    });
-    primary.replaceChildren(...primaryLines);
-    echo.replaceChildren(...echoLines);
-    const styles = styleClasses.join(" ");
-    primary.className = `primary entering ${styles}`.trim();
-    echo.className = `echo ${styles}`.trim();
-    if (mode === "glitch") glitch();
-    if (audio && text) audio.tone(110 * Math.pow(2, (text.length % 12) / 12), 1.8);
-  }, 1600);
+function chooseRoom(event) {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0) return;
+  event.preventDefault();
+  const destination = event.currentTarget.href;
+  threshold.dataset.state = "leaving";
+  thresholdAudio.fadeOut();
+  window.setTimeout(() => window.location.assign(destination), reducedMotion ? 20 : 1150);
 }
 
-function glitch() {
-  work.classList.add("glitching");
-  if (audio) audio.click();
-  schedule(() => work.classList.remove("glitching"), 1100);
-}
+enter.addEventListener("click", crossThreshold);
 
-function hardCut() {
-  work.classList.add("hard-cut");
-  if (audio) audio.click();
-  schedule(() => work.classList.remove("hard-cut"), 190);
-  schedule(() => { work.classList.add("hard-cut"); if (audio) audio.click(); }, 330);
-  schedule(() => work.classList.remove("hard-cut"), 430);
-}
-
-function atonalRupture() {
-  schedule(() => work.classList.add("blackout"), 520);
-  schedule(() => {
-    work.classList.remove("blackout");
-    work.classList.add("exposed");
-  }, 1950);
-  schedule(() => work.classList.remove("exposed"), 7600);
-}
-
-function noticeSomething(event) {
-  if (!running || event.target === soundFallback) return;
-  const rect = field.getBoundingClientRect();
-  const x = ((event.clientX || rect.width / 2) / rect.width) * 100;
-  const y = ((event.clientY || rect.height / 2) / rect.height) * 100;
-  noticed += 1;
-  if (film) film.pulse(x / 100 * rect.width, y / 100 * rect.height);
-  if (noticed % 3 === 0) {
-    field.classList.add("frame-slip");
-    schedule(() => field.classList.remove("frame-slip"), 800);
-  }
-}
-
-function handleCue([, nextChapter, text, mode]) {
-  const chapterNumber = Number(nextChapter.slice(0, 2));
-  const styleClasses = [];
-  if (chapterNumber === 2 || chapterNumber === 5) styleClasses.push("layout-a");
-  if (chapterNumber === 3 || chapterNumber === 6) styleClasses.push("layout-b");
-  if (chapterNumber === 4) styleClasses.push("layout-c");
-  if (mode === "relation") styleClasses.push("relation");
-  if (mode === "coda") styleClasses.push("coda");
-  if (mode === "glitch") styleClasses.push("mono");
-  setText(text, mode, styleClasses);
-  if (mode === "relation") {
-    atonalRupture();
-    if (film) film.energy = .86;
-  }
-  if (mode === "hard") hardCut();
-  if (mode === "notice" && film) film.energy = .78;
-  if (mode === "finish") finish();
-}
-
-function animateProgress(now) {
-  if (!running) return;
-  const elapsed = now - startTime;
-  if (film) film.draw(now, elapsed);
-  raf = requestAnimationFrame(animateProgress);
-}
-
-async function begin() {
-  timers.forEach(clearTimeout);
-  timers = [];
-  cancelAnimationFrame(raf);
-  noticed = 0;
-  running = true;
-  work.className = "running";
-  work.dataset.scene = "running";
-  soundFallback.hidden = true;
-  film = new FilmField(filmCanvas, filmContext);
-  audio = new HouseAudio();
-  await audio.start();
-  cues.forEach(cue => schedule(() => handleCue(cue), cue[0]));
-  startTime = performance.now();
-  raf = requestAnimationFrame(animateProgress);
-}
-
-function finish() {
-  running = false;
-  cancelAnimationFrame(raf);
-  work.className = "finished";
-  work.dataset.scene = "after";
-  if (audio) {
-    schedule(() => audio.stop(), 1200);
-  }
-}
-
-enter.addEventListener("click", begin);
-again.addEventListener("click", begin);
-field.addEventListener("click", noticeSomething);
-soundFallback.addEventListener("click", event => {
-  event.stopPropagation();
-  if (audio) {
-    audio.start();
-    soundFallback.hidden = true;
-  }
+soundControl.addEventListener("click", () => {
+  const muted = thresholdAudio.toggle();
+  soundControl.textContent = muted ? "listen" : "silence";
+  soundControl.setAttribute("aria-pressed", String(muted));
 });
 
-field.addEventListener("keydown", event => {
-  if (event.key === " " || event.key === "Enter") {
-    event.preventDefault();
-    noticeSomething({ target: field, clientX: innerWidth * (.2 + Math.random() * .6), clientY: innerHeight * (.2 + Math.random() * .6) });
-  }
+rooms.forEach(room => {
+  room.addEventListener("click", chooseRoom);
+  room.addEventListener("pointerenter", () => thresholdAudio.lean(room.dataset.room));
+  room.addEventListener("focus", () => thresholdAudio.lean(room.dataset.room));
 });
 
+document.querySelectorAll(".house-nav a").forEach(link => {
+  link.addEventListener("click", chooseRoom);
+});
+
+addEventListener("pointermove", event => {
+  pointer = { x: event.clientX, y: event.clientY, visible: true };
+});
+
+addEventListener("pointerdown", event => {
+  pointer = { x: event.clientX, y: event.clientY, visible: true };
+  pulse = Math.min(1, pulse + .34);
+});
+
+addEventListener("resize", resize);
 document.addEventListener("visibilitychange", () => {
-  if (audio && audio.element) {
-    if (document.hidden) audio.element.pause();
-    else if (running && !audio.muted) audio.element.play().catch(() => {});
-  }
+  if (!thresholdAudio.context) return;
+  if (document.hidden) thresholdAudio.context.suspend();
+  else if (entered && !thresholdAudio.muted) thresholdAudio.context.resume();
 });
+
+resize();
+if (!reducedMotion) animationFrame = requestAnimationFrame(draw);

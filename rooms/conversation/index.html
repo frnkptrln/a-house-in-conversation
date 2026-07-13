@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11100e">
+  <meta name="description" content="The Conversation Room — a voice, a visitor, and a house that only exists in conversation.">
+  <title>The Conversation Room — A House in Conversation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="house-nav" aria-label="House navigation">
+    <a href="../../">house</a>
+    <span aria-current="page">conversation</span>
+    <a href="../colour/">colour</a>
+  </nav>
+
+  <main id="work" data-scene="threshold" aria-live="polite">
+    <div class="grain" aria-hidden="true"></div>
+    <div class="sky" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+    <section id="threshold" class="threshold">
+      <h1>The Conversation<br>Room</h1>
+      <button id="enter" type="button">enter the conversation</button>
+    </section>
+
+    <section id="stage" class="stage" aria-label="The house">
+      <div id="field" class="field" tabindex="0">
+        <canvas id="film" aria-hidden="true"></canvas>
+        <div class="film-light light-a" aria-hidden="true"></div>
+        <div class="film-light light-b" aria-hidden="true"></div>
+        <div id="primary" class="primary"></div>
+        <div id="echo" class="echo" aria-hidden="true"></div>
+        <button id="sound-fallback" class="sound-fallback" type="button" hidden>tap for sound</button>
+      </div>
+    </section>
+
+    <section id="after" class="after">
+      <button id="again" type="button">enter again</button>
+      <a class="return" href="../../">return to the threshold</a>
+    </section>
+  </main>
+  <audio id="soundtrack" src="../../audio/house.m4a" preload="auto" playsinline></audio>
+  <noscript>This house needs JavaScript in order to appear.</noscript>
+  <script src="script.js"></script>
+</body>
+</html>

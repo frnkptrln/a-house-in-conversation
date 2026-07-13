@@ -27,6 +27,16 @@ let ripples = [];
 let sourceA = { x: width * .27, y: height * .48 };
 let sourceB = { x: width * .73, y: height * .52 };
 
+function rememberVisit(roomName) {
+  try {
+    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    visits[roomName] = Date.now();
+    localStorage.setItem("house-room-visits", JSON.stringify(visits));
+  } catch (error) {
+    // The room remains complete when storage is unavailable.
+  }
+}
+
 function resize() {
   ratio = Math.min(devicePixelRatio || 1, 2);
   width = innerWidth;
@@ -83,22 +93,11 @@ function spawnThird(x, y, amount, hue) {
   if (particles.length > (reducedMotion ? 35 : 120)) particles.splice(0, particles.length - (reducedMotion ? 35 : 120));
 }
 
-function drawRibbon(hue, clarity) {
+function measureRelation() {
   const distance = Math.hypot(sourceB.x - sourceA.x, sourceB.y - sourceA.y);
   const closeness = Math.max(0, 1 - distance / (width * .65));
   const middleX = (sourceA.x + sourceB.x) / 2;
   const middleY = (sourceA.y + sourceB.y) / 2;
-  const gradient = ctx.createLinearGradient(sourceA.x, sourceA.y, sourceB.x, sourceB.y);
-  gradient.addColorStop(0, hsl(350, 84 * clarity, 58, .18 * closeness));
-  gradient.addColorStop(.5, hsl(hue, 88 * clarity, 57, .55 * closeness));
-  gradient.addColorStop(1, hsl(210, 86 * clarity, 56, .18 * closeness));
-  ctx.strokeStyle = gradient;
-  ctx.lineWidth = 3 + closeness * 30;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(sourceA.x, sourceA.y);
-  ctx.bezierCurveTo(middleX, middleY - height * .15, middleX, middleY + height * .15, sourceB.x, sourceB.y);
-  ctx.stroke();
   return { closeness, middleX, middleY };
 }
 
@@ -172,7 +171,7 @@ function frame(now) {
   const radius = Math.min(width, height) * (.29 + meeting * .08);
   paintBlob(sourceA.x, sourceA.y, radius, hueA, 88 * clarity, 57, .72, now, 0);
   paintBlob(sourceB.x, sourceB.y, radius, hueB, 86 * clarity, 55, .68, now, 1.7);
-  const relation = drawRibbon(thirdHue, clarity);
+  const relation = measureRelation();
 
   thirdStrength += (relation.closeness - thirdStrength) * .018;
   if (relation.closeness > .32 && Math.random() < .12 + relation.closeness * .2) {
@@ -204,6 +203,7 @@ async function begin() {
   room.dataset.state = "running";
   soundFallback.hidden = true;
   running = true;
+  rememberVisit("colour");
   soundtrack.currentTime = 0;
   soundtrack.volume = .88;
   soundtrack.muted = false;
