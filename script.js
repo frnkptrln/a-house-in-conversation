@@ -94,21 +94,21 @@ function draw(time) {
     conversation.x + Math.sin(movementTime * .00011) * 18,
     conversation.y + Math.cos(movementTime * .00009) * 13,
     conversation.radius * 1.45,
-    "199,155,109",
+    "167,139,250",
     energy + (visits.conversation ? .24 : 0)
   );
   paintField(
     colour.x + Math.cos(movementTime * .0001) * 21,
     colour.y + Math.sin(movementTime * .00012) * 15,
     colour.radius * 1.5,
-    "255,88,125",
+    "255,111,145",
     energy * .72 + (visits.colour ? .2 : 0)
   );
   paintField(
     colour.x - Math.sin(movementTime * .00008) * 19,
     colour.y - Math.cos(movementTime * .0001) * 17,
     colour.radius * 1.43,
-    "50,132,255",
+    "90,141,255",
     energy * .68 + (visits.colour ? .2 : 0)
   );
 
@@ -116,17 +116,17 @@ function draw(time) {
     (conversation.x + colour.x) / 2,
     (conversation.y + colour.y) / 2,
     Math.min(width, height) * (.08 + pulse * .035),
-    "216,255,79",
+    "112,225,209",
     (.08 + pulse * .09) * energy
   );
 
   for (const trace of unformed) {
     const x = width * trace.x + Math.sin(movementTime * .00009 + trace.phase) * 9;
     const y = height * trace.y + Math.cos(movementTime * .00008 + trace.phase) * 7;
-    paintField(x, y, 26 + 8 * Math.sin(movementTime * .0001 + trace.phase), "222,217,204", .16 * energy);
+    paintField(x, y, 26 + 8 * Math.sin(movementTime * .0001 + trace.phase), "174,166,226", .16 * energy);
   }
 
-  context.fillStyle = `rgba(222,217,204,${.035 * energy})`;
+  context.fillStyle = `rgba(236,234,244,${.035 * energy})`;
   for (const mote of motes) {
     const x = mote.x * width + Math.sin(movementTime * .0001 + mote.phase) * (12 + pulse * 20);
     const y = mote.y * height + Math.cos(movementTime * .00008 + mote.phase) * (9 + pulse * 14);
@@ -136,7 +136,7 @@ function draw(time) {
   }
 
   if (pointer.visible) {
-    paintField(pointer.x, pointer.y, 80 + pulse * 85, "216,255,79", .16 + pulse * .24);
+    paintField(pointer.x, pointer.y, 80 + pulse * 85, "112,225,209", .16 + pulse * .24);
   }
 
   context.restore();
@@ -150,6 +150,8 @@ class ThresholdAudio {
     this.filter = null;
     this.voices = [];
     this.muted = false;
+    this.motifTimer = 0;
+    this.motifForm = 0;
   }
 
   async start() {
@@ -162,6 +164,7 @@ class ThresholdAudio {
     if (this.context) {
       await this.context.resume();
       this.fadeTo(this.muted ? .0001 : .72, 1.8);
+      this.scheduleMotif(2.8);
       return;
     }
 
@@ -224,6 +227,65 @@ class ThresholdAudio {
 
     await this.context.resume();
     this.fadeTo(this.muted ? .0001 : .72, 3.2);
+    this.scheduleMotif(2.8);
+  }
+
+  playSeed(frequency, when, pan, duration = 2.7) {
+    if (!this.context || !this.filter) return;
+
+    const oscillator = this.context.createOscillator();
+    const gain = this.context.createGain();
+    const panner = this.context.createStereoPanner ? this.context.createStereoPanner() : null;
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, when);
+    gain.gain.setValueAtTime(.0001, when);
+    gain.gain.exponentialRampToValueAtTime(.019, when + .34);
+    gain.gain.exponentialRampToValueAtTime(.0001, when + duration);
+
+    if (panner) {
+      panner.pan.setValueAtTime(pan, when);
+      oscillator.connect(gain).connect(panner).connect(this.filter);
+    } else {
+      oscillator.connect(gain).connect(this.filter);
+    }
+
+    oscillator.start(when);
+    oscillator.stop(when + duration + .08);
+  }
+
+  scheduleMotif(delay = 0) {
+    if (!this.context || this.motifTimer) return;
+
+    this.motifTimer = window.setTimeout(() => {
+      this.motifTimer = 0;
+
+      if (!this.context || document.hidden || this.context.state !== "running") {
+        this.scheduleMotif(2.5);
+        return;
+      }
+
+      const forms = [
+        [0, 2.75, 5.9, 9.15],
+        [0, 3.2, 6.05, 9.8],
+        [0, 2.9, 6.4, 9.35]
+      ];
+      const notes = [
+        { frequency: 329.63, pan: -.38 },
+        { frequency: 493.88, pan: .34 },
+        { frequency: 369.99, pan: -.12 },
+        { frequency: 440, pan: .22 }
+      ];
+      const form = forms[this.motifForm];
+      const now = this.context.currentTime + .08;
+
+      notes.forEach((note, index) => {
+        this.playSeed(note.frequency, now + form[index], note.pan, index === 3 ? 3.5 : 2.7);
+      });
+
+      this.motifForm = (this.motifForm + 1) % forms.length;
+      this.scheduleMotif(form[3] + 13 + this.motifForm * 1.7);
+    }, delay * 1000);
   }
 
   fadeTo(value, duration) {
@@ -245,11 +307,14 @@ class ThresholdAudio {
 
   toggle() {
     this.muted = !this.muted;
+    if (!this.muted && this.context?.state === "suspended") this.context.resume();
     this.fadeTo(this.muted ? .0001 : .72, 1.1);
     return this.muted;
   }
 
   fadeOut() {
+    window.clearTimeout(this.motifTimer);
+    this.motifTimer = 0;
     this.fadeTo(.0001, 1.05);
   }
 }

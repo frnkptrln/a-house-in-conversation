@@ -1,13 +1,14 @@
 :root {
-  --night: #11100e;
-  --ink: #ded9cc;
-  --dim: #817d74;
-  --warm: #c79b6d;
-  --rose: #ff587d;
-  --blue: #3284ff;
-  --acid: #d8ff4f;
+  --night: #0b0c15;
+  --ink: #eceaf4;
+  --dim: #8b8998;
+  --warm: #f1b66e;
+  --violet: #a78bfa;
+  --cyan: #70e1d1;
+  --rose: #ff6f91;
+  --blue: #5a8dff;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --serif: Georgia, "Times New Roman", serif;
+  --sans: "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -22,7 +23,7 @@ body {
 body {
   overflow: hidden;
   color: var(--ink);
-  font-family: var(--mono);
+  font-family: var(--sans);
 }
 
 button,
@@ -36,9 +37,10 @@ button { -webkit-tap-highlight-color: transparent; }
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(circle at 27% 45%, rgba(199, 155, 109, .07), transparent 31%),
-    radial-gradient(circle at 73% 53%, rgba(74, 104, 154, .055), transparent 33%),
-    linear-gradient(153deg, #171511, #0d0d0c 61%, #10120f);
+    radial-gradient(circle at 18% 18%, rgba(167, 139, 250, .15), transparent 34%),
+    radial-gradient(circle at 80% 22%, rgba(112, 225, 209, .09), transparent 32%),
+    radial-gradient(circle at 65% 86%, rgba(255, 111, 145, .075), transparent 38%),
+    linear-gradient(148deg, #101321, #0a0c15 48%, #17101d);
   transition: opacity 1.4s ease, filter 1.4s ease;
 }
 
@@ -48,7 +50,7 @@ button { -webkit-tap-highlight-color: transparent; }
   z-index: 1;
   width: 100%;
   height: 100%;
-  opacity: .48;
+  opacity: .56;
   transition: opacity 3s ease, filter 4s ease;
 }
 
@@ -57,7 +59,7 @@ button { -webkit-tap-highlight-color: transparent; }
   inset: -45%;
   z-index: 8;
   pointer-events: none;
-  opacity: .055;
+  opacity: .04;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.62'/%3E%3C/svg%3E");
   animation: grain .34s steps(2) infinite;
 }
@@ -79,16 +81,17 @@ button { -webkit-tap-highlight-color: transparent; }
 
 .arrival {
   display: grid;
-  place-content: center;
+  align-content: end;
   justify-items: start;
   padding: clamp(1.5rem, 8vw, 8rem);
+  padding-bottom: max(clamp(2.8rem, 12vh, 7rem), env(safe-area-inset-bottom));
 }
 
 h1 {
   margin: 0;
-  max-width: 10ch;
-  font: 400 clamp(3.6rem, 10vw, 9.2rem)/.82 var(--serif);
-  letter-spacing: -.07em;
+  max-width: 11ch;
+  font: 300 clamp(3.4rem, 8.8vw, 8.4rem)/.9 var(--sans);
+  letter-spacing: -.045em;
   text-wrap: balance;
 }
 
@@ -105,8 +108,8 @@ h1 {
 
 #enter:hover,
 #enter:focus-visible {
-  color: var(--warm);
-  border-color: var(--warm);
+  color: var(--cyan);
+  border-color: var(--cyan);
   letter-spacing: .025em;
 }
 
@@ -154,10 +157,10 @@ h1 {
   align-items: center;
   transform: translateX(-50%);
   padding: .55rem .78rem;
-  border: 1px solid rgba(222, 217, 204, .12);
+  border: 1px solid rgba(236, 234, 244, .14);
   border-radius: 999px;
-  color: rgba(222, 217, 204, .74);
-  background: rgba(17, 16, 14, .34);
+  color: rgba(236, 234, 244, .76);
+  background: rgba(12, 13, 25, .44);
   backdrop-filter: blur(13px);
   font-size: clamp(.6rem, 1vw, .72rem);
   letter-spacing: .08em;
@@ -166,10 +169,10 @@ h1 {
 }
 
 .house-nav:hover,
-.house-nav:focus-within { border-color: rgba(222, 217, 204, .34); }
+.house-nav:focus-within { border-color: rgba(112, 225, 209, .38); }
 
 .house-nav a {
-  color: rgba(222, 217, 204, .5);
+  color: rgba(236, 234, 244, .52);
   text-decoration: none;
   transition: color .6s ease;
 }
@@ -181,8 +184,8 @@ h1 {
 
 .room {
   position: absolute;
-  width: clamp(10rem, 28vw, 25rem);
-  aspect-ratio: 1;
+  width: clamp(9rem, 22vw, 20rem);
+  aspect-ratio: .78;
   transform: translate(-50%, -50%);
   color: var(--ink);
   text-decoration: none;
@@ -196,17 +199,17 @@ h1 {
 }
 
 .room-colour {
-  left: 72%;
-  top: 47%;
-  width: clamp(11rem, 31vw, 27rem);
+  left: 70%;
+  top: 50%;
+  width: clamp(10rem, 24vw, 22rem);
 }
 
 .aperture {
   position: absolute;
-  inset: 10%;
+  inset: 5% 10%;
   display: block;
-  border-radius: 50%;
-  opacity: .7;
+  border-radius: 47% 53% 42% 58% / 59% 43% 57% 41%;
+  opacity: .76;
   transform: scale(.82);
   filter: blur(2px);
   transition: opacity 2s ease, transform 2.8s cubic-bezier(.18, .8, .2, 1), filter 2.8s ease;
@@ -223,10 +226,10 @@ h1 {
 
 .aperture::before {
   inset: 9%;
-  border: 1px solid rgba(222, 217, 204, .16);
+  border: 1px solid rgba(236, 234, 244, .18);
   box-shadow:
-    0 0 45px rgba(222, 217, 204, .05),
-    inset 0 0 36px rgba(222, 217, 204, .035);
+    0 0 55px rgba(167, 139, 250, .09),
+    inset 0 0 42px rgba(112, 225, 209, .04);
 }
 
 .aperture::after {
@@ -237,10 +240,10 @@ h1 {
 
 .room-conversation .aperture {
   background:
-    radial-gradient(circle at 48% 43%, rgba(222, 217, 204, .17), transparent 14%),
-    radial-gradient(circle at 38% 58%, rgba(199, 155, 109, .24), transparent 39%),
-    radial-gradient(circle at 66% 36%, rgba(112, 130, 103, .15), transparent 38%);
-  box-shadow: 0 0 100px rgba(199, 155, 109, .075);
+    radial-gradient(ellipse at 48% 42%, rgba(236, 234, 244, .18), transparent 15%),
+    radial-gradient(ellipse at 38% 61%, rgba(241, 182, 110, .22), transparent 42%),
+    radial-gradient(ellipse at 67% 32%, rgba(167, 139, 250, .18), transparent 40%);
+  box-shadow: 0 0 110px rgba(167, 139, 250, .09);
 }
 
 .room-conversation .aperture::after { background: var(--warm); }
@@ -248,19 +251,19 @@ h1 {
 .room-colour .aperture {
   animation-delay: -5s;
   background:
-    radial-gradient(circle at 34% 42%, rgba(255, 88, 125, .32), transparent 37%),
-    radial-gradient(circle at 68% 59%, rgba(50, 132, 255, .3), transparent 40%),
-    radial-gradient(circle at 51% 49%, rgba(216, 255, 79, .14), transparent 25%);
+    radial-gradient(ellipse at 34% 42%, rgba(255, 111, 145, .34), transparent 39%),
+    radial-gradient(ellipse at 68% 59%, rgba(90, 141, 255, .32), transparent 42%),
+    radial-gradient(ellipse at 51% 49%, rgba(112, 225, 209, .16), transparent 27%);
   box-shadow:
-    -30px -8px 100px rgba(255, 88, 125, .08),
-    30px 12px 100px rgba(50, 132, 255, .08);
+    -30px -8px 110px rgba(255, 111, 145, .1),
+    30px 12px 110px rgba(90, 141, 255, .1);
 }
 
-.room-colour .aperture::after { background: var(--acid); }
+.room-colour .aperture::after { background: var(--cyan); }
 
 @keyframes breathe {
-  from { transform: scale(.78) rotate(-2deg); filter: blur(4px); }
-  to { transform: scale(.96) rotate(2deg); filter: blur(1px); }
+  from { transform: scale(.78) rotate(-3deg) skewY(-1deg); filter: blur(5px); }
+  to { transform: scale(.96) rotate(3deg) skewY(1deg); filter: blur(1px); }
 }
 
 .room-name {
@@ -268,7 +271,7 @@ h1 {
   left: 50%;
   bottom: 2%;
   transform: translateX(-50%) translateY(.6rem);
-  color: rgba(222, 217, 204, .52);
+  color: rgba(236, 234, 244, .56);
   font-size: clamp(.68rem, 1vw, .82rem);
   letter-spacing: .17em;
   white-space: nowrap;
@@ -291,17 +294,17 @@ h1 {
 }
 
 .room:focus-visible .aperture::before {
-  border-color: rgba(222, 217, 204, .7);
+  border-color: rgba(236, 234, 244, .72);
 }
 
 .room.visited .aperture::before {
-  border-color: rgba(216, 255, 79, .3);
+  border-color: rgba(112, 225, 209, .38);
   box-shadow:
-    0 0 0 5px rgba(216, 255, 79, .018),
-    0 0 70px rgba(216, 255, 79, .08);
+    0 0 0 5px rgba(112, 225, 209, .02),
+    0 0 75px rgba(112, 225, 209, .11);
 }
 
-.room.visited .room-name { color: rgba(216, 255, 79, .72); }
+.room.visited .room-name { color: rgba(112, 225, 209, .78); }
 
 .unformed {
   position: absolute;
@@ -315,8 +318,8 @@ h1 {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(222, 217, 204, .22);
-  box-shadow: 0 0 28px rgba(222, 217, 204, .16);
+  background: rgba(174, 166, 226, .32);
+  box-shadow: 0 0 32px rgba(112, 225, 209, .18);
   animation: remain 13s ease-in-out infinite alternate;
 }
 
@@ -338,8 +341,8 @@ h1 {
   z-index: 5;
   padding: .55rem 0;
   border: 0;
-  border-bottom: 1px solid rgba(222, 217, 204, .24);
-  color: rgba(222, 217, 204, .48);
+  border-bottom: 1px solid rgba(236, 234, 244, .24);
+  color: rgba(236, 234, 244, .52);
   background: transparent;
   cursor: pointer;
   font-size: .7rem;
@@ -374,12 +377,15 @@ h1 {
 .without-script a { color: var(--ink); }
 
 @media (max-width: 650px) {
-  .arrival { padding: 1.45rem; }
+  .arrival {
+    padding: 1.45rem;
+    padding-bottom: max(3.2rem, env(safe-area-inset-bottom));
+  }
 
-  h1 { font-size: clamp(3.55rem, 17vw, 6.2rem); }
+  h1 { font-size: clamp(3.25rem, 14.5vw, 5.5rem); }
 
   .room {
-    width: min(53vw, 14.5rem);
+    width: min(43vw, 12.5rem);
   }
 
   .room-conversation {
@@ -390,7 +396,7 @@ h1 {
   .room-colour {
     left: 64%;
     top: 68%;
-    width: min(57vw, 15.5rem);
+    width: min(47vw, 13.5rem);
   }
 
   .room-name {
