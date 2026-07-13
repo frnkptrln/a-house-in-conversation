@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Render the fixed score for The Garden.
 
-The threshold's E–B–F♯–A seed grows into a warm, melodic form. The
-composition is deterministic so the room can be rebuilt without external
-recordings, plugins, or services.
+The threshold's E–B–F♯–A seed grows into a warm, melodic form. Small
+fluctuations of breath, bow, wood, timing, and tuning keep the performance
+alive. The composition is deterministic so the room can be rebuilt without
+external recordings, plugins, or services.
 """
 
 from __future__ import annotations
@@ -61,15 +62,29 @@ class GardenScore:
         time = np.arange(length, dtype=np.float32) / RATE
         signal = np.zeros(length, dtype=np.float32)
         for index, note in enumerate(midi_notes):
-            hz = frequency(note)
+            hz = frequency(note + RNG.uniform(-.045, .045))
             phase = RNG.uniform(0, np.pi * 2)
-            drift = .016 * np.sin(2 * np.pi * (.018 + index * .004) * time + phase)
-            voice = np.sin(2 * np.pi * hz * time + drift + phase)
-            voice += .22 * np.sin(2 * np.pi * hz * 2.002 * time + phase * .7)
-            voice += .07 * np.sin(2 * np.pi * hz * 3.997 * time + phase * 1.3)
-            signal += voice.astype(np.float32) / (1.29 * len(midi_notes))
+            wander_source = RNG.normal(0, 1, length).astype(np.float32)
+            wander_filter = butter(1, .42 + index * .035, btype="lowpass", fs=RATE, output="sos")
+            wander = sosfilt(wander_filter, wander_source).astype(np.float32)
+            wander /= max(float(np.std(wander)), 1e-6)
+            cents = 1.8 * np.sin(2 * np.pi * (.055 + index * .007) * time + phase) + wander * .65
+            instantaneous = hz * np.exp2(cents / 1_200)
+            bowed_phase = np.cumsum(instantaneous, dtype=np.float64) * (2 * np.pi / RATE) + phase
+
+            voice = np.zeros(length, dtype=np.float32)
+            for partial, weight in ((1, 1.0), (2, .29), (3, .13), (4, .055), (5, .024)):
+                voice += weight * np.sin(bowed_phase * partial + phase * partial * .17).astype(np.float32)
+
+            bow = RNG.normal(0, 1, length).astype(np.float32)
+            bow_filter = butter(2, [520, 4_600], btype="bandpass", fs=RATE, output="sos")
+            bow = sosfilt(bow_filter, bow).astype(np.float32)
+            gesture = .9 + .1 * np.sin(2 * np.pi * (.071 + index * .005) * time + phase * .4)
+            gesture += np.clip(wander * .024, -.06, .06)
+            voice = voice * gesture.astype(np.float32) + bow * .018
+            signal += voice / (1.53 * len(midi_notes))
         signal *= window(length, 7.5, 10.0)
-        signal *= (.88 + .12 * np.sin(2 * np.pi * .027 * time + pan)).astype(np.float32)
+        signal *= (.86 + .14 * np.sin(2 * np.pi * .027 * time + pan)).astype(np.float32)
         self.add(signal, start, amplitude, pan)
 
     def bass(self, start: float, duration: float, midi_note: int, amplitude: float = .045) -> None:
@@ -77,9 +92,17 @@ class GardenScore:
         if length <= 0:
             return
         time = np.arange(length, dtype=np.float32) / RATE
-        hz = frequency(midi_note)
-        signal = np.sin(2 * np.pi * hz * time)
-        signal += .16 * np.sin(2 * np.pi * hz * 2 * time + .3)
+        hz = frequency(midi_note + RNG.uniform(-.035, .035))
+        phase = RNG.uniform(0, np.pi * 2)
+        drift = 1.15 * np.sin(2 * np.pi * .073 * time + phase)
+        instantaneous = hz * np.exp2(drift / 1_200)
+        bass_phase = np.cumsum(instantaneous, dtype=np.float64) * (2 * np.pi / RATE)
+        signal = np.sin(bass_phase)
+        signal += .23 * np.sin(bass_phase * 2 + .3)
+        signal += .07 * np.sin(bass_phase * 3 + 1.1)
+        grain = RNG.normal(0, 1, length).astype(np.float32)
+        grain = sosfilt(butter(2, 780, btype="lowpass", fs=RATE, output="sos"), grain).astype(np.float32)
+        signal += grain * .012
         signal *= window(length, 4.5, 7.0)
         self.add(signal.astype(np.float32), start, amplitude, -.08)
 
@@ -96,50 +119,78 @@ class GardenScore:
         if length <= 0:
             return
         time = np.arange(length, dtype=np.float32) / RATE
-        hz = frequency(midi_note)
+        hz = frequency(midi_note + RNG.uniform(-.055, .055))
         phase = RNG.uniform(0, np.pi * 2)
-        vibrato = .018 * np.sin(2 * np.pi * (.32 + RNG.uniform(-.05, .05)) * time + phase)
-        signal = np.sin(2 * np.pi * hz * time + vibrato)
-        signal += .23 / softness * np.sin(2 * np.pi * hz * 2.001 * time + phase * .41)
-        signal += .075 / softness * np.sin(2 * np.pi * hz * 3.004 * time + phase * .83)
-        envelope = window(length, .34 * softness, min(duration * .72, 2.8 * softness))
-        envelope *= np.exp(-time * (.16 / softness)).astype(np.float32)
-        self.add((signal * envelope / 1.3).astype(np.float32), start, amplitude, pan)
+        breath_source = RNG.normal(0, 1, length).astype(np.float32)
+        breath_filter = butter(1, 2.7, btype="lowpass", fs=RATE, output="sos")
+        breath_motion = sosfilt(breath_filter, breath_source).astype(np.float32)
+        breath_motion /= max(float(np.std(breath_motion)), 1e-6)
+        vibrato = (2.7 + .75 * np.sin(2 * np.pi * .13 * time + phase)) * np.sin(
+            2 * np.pi * (4.35 + RNG.uniform(-.22, .22)) * time + phase
+        )
+        cents = vibrato + breath_motion * .42
+        instantaneous = hz * np.exp2(cents / 1_200)
+        note_phase = np.cumsum(instantaneous, dtype=np.float64) * (2 * np.pi / RATE) + phase
+        signal = np.sin(note_phase)
+        signal += .16 / softness * np.sin(note_phase * 2 + phase * .41)
+        signal += .048 / softness * np.sin(note_phase * 3 + phase * .83)
 
-    def bell(self, start: float, midi_note: int, amplitude: float = .027, pan: float = 0) -> None:
-        duration = 5.8
+        breath = RNG.normal(0, 1, length).astype(np.float32)
+        breath = sosfilt(
+            butter(2, [720, 5_200], btype="bandpass", fs=RATE, output="sos"), breath
+        ).astype(np.float32)
+        breath_level = .02 + .012 * np.clip(breath_motion, -.8, .8)
+        signal += breath * breath_level
+        envelope = window(length, .34 * softness, min(duration * .72, 2.8 * softness))
+        envelope *= np.exp(-time * (.11 / softness)).astype(np.float32)
+        envelope *= np.clip(1 + breath_motion * .035, .88, 1.1)
+        self.add((signal * envelope / 1.22).astype(np.float32), start, amplitude, pan)
+
+    def wood(self, start: float, midi_note: int, amplitude: float = .027, pan: float = 0) -> None:
+        duration = 4.9
         length = min(SAMPLES - int(start * RATE), int(duration * RATE))
         if length <= 0:
             return
         time = np.arange(length, dtype=np.float32) / RATE
         hz = frequency(midi_note)
         signal = np.zeros(length, dtype=np.float32)
-        for partial, weight, decay in ((1, 1, .55), (2.01, .31, .9), (3.98, .12, 1.4), (6.07, .045, 2.1)):
+        for partial, weight, decay in ((1, 1, .78), (2.34, .26, 1.18), (3.91, .11, 1.65), (5.18, .038, 2.3)):
             signal += weight * np.sin(2 * np.pi * hz * partial * time) * np.exp(-time * decay)
-        signal *= window(length, .012, 2.4)
-        self.add(signal / 1.48, start, amplitude, pan)
+        mallet = RNG.normal(0, 1, length).astype(np.float32)
+        mallet = sosfilt(butter(2, 2_300, btype="lowpass", fs=RATE, output="sos"), mallet).astype(np.float32)
+        mallet *= np.exp(-time * 38).astype(np.float32) * .24
+        signal = (signal + mallet) * window(length, .008, 1.9)
+        self.add(signal / 1.42, start, amplitude, pan)
 
     def texture(self) -> None:
         noise = RNG.normal(0, 1, SAMPLES).astype(np.float32)
-        rustle_filter = butter(2, [280, 4_200], btype="bandpass", fs=RATE, output="sos")
+        rustle_filter = butter(2, [340, 5_400], btype="bandpass", fs=RATE, output="sos")
         rustle = sosfilt(rustle_filter, noise).astype(np.float32)
         time = np.arange(SAMPLES, dtype=np.float32) / RATE
-        movement = .34 + .66 * (
-            .5 + .5 * np.sin(2 * np.pi * .021 * time + .7)
-        ) * (
-            .5 + .5 * np.sin(2 * np.pi * .033 * time + 2.1)
-        )
-        rustle *= movement.astype(np.float32) * .0065
+        movement_noise = RNG.normal(0, 1, SAMPLES).astype(np.float32)
+        movement = sosfilt(
+            butter(1, .19, btype="lowpass", fs=RATE, output="sos"), movement_noise
+        ).astype(np.float32)
+        movement -= float(np.min(movement))
+        movement /= max(float(np.max(movement)), 1e-6)
+        movement = .12 + movement ** 2.15
+        rustle *= movement.astype(np.float32) * .0082
         self.mix[0] += rustle
-        self.mix[1] += np.roll(rustle, int(.037 * RATE)) * .84
+        self.mix[1] += np.roll(rustle, int(.041 * RATE)) * .78
 
-        for start in (18.5, 43.2, 67.8, 91.5, 116.1, 133.4):
-            length = int(7.5 * RATE)
+        wind = RNG.normal(0, 1, SAMPLES).astype(np.float32)
+        wind = sosfilt(butter(2, [72, 760], btype="bandpass", fs=RATE, output="sos"), wind).astype(np.float32)
+        wind *= (.0022 + movement * .0041).astype(np.float32)
+        self.mix[0] += wind
+        self.mix[1] += np.roll(wind, int(.083 * RATE)) * .86
+
+        for start in (18.5, 42.7, 68.4, 92.1, 115.6, 133.1):
+            length = int(RNG.uniform(6.7, 9.3) * RATE)
             time_local = np.arange(length, dtype=np.float32) / RATE
             breath = RNG.normal(0, 1, length).astype(np.float32)
             breath = sosfilt(butter(2, 620, btype="lowpass", fs=RATE, output="sos"), breath).astype(np.float32)
-            breath *= window(length, 2.8, 3.8) * .013
-            breath *= (1 + .16 * np.sin(2 * np.pi * .18 * time_local)).astype(np.float32)
+            breath *= window(length, 2.8, 3.8) * .012
+            breath *= (1 + .13 * np.sin(2 * np.pi * RNG.uniform(.11, .21) * time_local)).astype(np.float32)
             self.add(breath, start, 1, RNG.uniform(-.7, .7))
 
     def melody(self) -> None:
@@ -153,8 +204,10 @@ class GardenScore:
         pans = (-.42, .34, -.18, .22, -.3, .4, -.08, .28, -.36, .18, 0)
         for phrase_start, notes, offsets, amplitude in phrases:
             for index, (note, offset) in enumerate(zip(notes, offsets, strict=True)):
-                duration = 3.8 if index < len(notes) - 1 else 5.6
-                self.note(phrase_start + offset, duration, note, amplitude, pans[index], 1.12)
+                duration = (3.8 if index < len(notes) - 1 else 5.6) + RNG.uniform(-.28, .34)
+                human_start = phrase_start + offset + RNG.uniform(-.16, .16)
+                human_amplitude = amplitude * RNG.uniform(.91, 1.07)
+                self.note(human_start, duration, note, human_amplitude, pans[index], 1.12)
 
         counterpoint = [
             (64.2, 52, 7.5, -.56), (70.8, 57, 6.2, .48), (77.0, 61, 7.2, -.24),
@@ -162,14 +215,14 @@ class GardenScore:
             (125.4, 73, 5.4, -.52), (130.0, 76, 6.0, .46), (135.0, 80, 6.8, .02),
         ]
         for start, note, duration, pan in counterpoint:
-            self.note(start, duration, note, .041, pan, 1.7)
+            self.note(start + RNG.uniform(-.2, .2), duration + RNG.uniform(-.25, .32), note, .039, pan, 1.7)
 
         for start, note, pan in (
             (22.4, 83, .62), (26.1, 78, -.58), (49.5, 80, .48), (53.2, 85, -.42),
             (81.0, 83, .55), (84.3, 88, -.5), (109.0, 85, .57), (113.2, 90, -.44),
             (139.0, 88, .38),
         ):
-            self.bell(start, note, .024, pan)
+            self.wood(start + RNG.uniform(-.11, .11), note, .023, pan)
 
     def harmony(self) -> None:
         chords = [
@@ -190,15 +243,23 @@ class GardenScore:
     def space(self) -> None:
         dry = self.mix.copy()
         wet = np.zeros_like(self.mix)
-        echoes = ((.17, .23), (.31, .18), (.47, .14), (.73, .11), (1.13, .08), (1.79, .055), (2.41, .038))
-        for delay, gain in echoes:
+        echoes = (
+            (.083, .11), (.127, .095), (.181, .088), (.263, .078), (.347, .071),
+            (.461, .064), (.619, .056), (.797, .049), (1.013, .043), (1.283, .037),
+            (1.579, .031), (1.907, .026), (2.291, .021), (2.713, .017),
+        )
+        for index, (delay, gain) in enumerate(echoes):
             offset = int(delay * RATE)
-            wet[0, offset:] += dry[1, :-offset] * gain
-            wet[1, offset:] += dry[0, :-offset] * gain
-        wet_filter = butter(2, 5_800, btype="lowpass", fs=RATE, output="sos")
+            if index % 3:
+                wet[0, offset:] += dry[1, :-offset] * gain
+                wet[1, offset:] += dry[0, :-offset] * gain * .94
+            else:
+                wet[0, offset:] += dry[0, :-offset] * gain * .9
+                wet[1, offset:] += dry[1, :-offset] * gain
+        wet_filter = butter(2, 4_900, btype="lowpass", fs=RATE, output="sos")
         wet[0] = sosfilt(wet_filter, wet[0]).astype(np.float32)
         wet[1] = sosfilt(wet_filter, wet[1]).astype(np.float32)
-        self.mix = dry * .88 + wet * .92
+        self.mix = dry * .9 + wet * 1.08
 
     def finish(self) -> np.ndarray:
         self.harmony()
@@ -218,7 +279,7 @@ class GardenScore:
         self.mix = np.tanh(self.mix * 1.42).astype(np.float32)
         peak = float(np.max(np.abs(self.mix)))
         if peak:
-            self.mix *= .86 / peak
+            self.mix *= .51 / peak
         return np.transpose(self.mix)
 
 
