@@ -112,23 +112,13 @@ function draw(time) {
     energy * .68 + (visits.colour ? .2 : 0)
   );
 
-  const bridge = context.createLinearGradient(conversation.x, conversation.y, colour.x, colour.y);
-  bridge.addColorStop(0, `rgba(199,155,109,${.018 * energy})`);
-  bridge.addColorStop(.52, `rgba(216,255,79,${(.03 + pulse * .035) * energy})`);
-  bridge.addColorStop(1, `rgba(50,132,255,${.018 * energy})`);
-  context.strokeStyle = bridge;
-  context.lineWidth = 1 + pulse * 2.5;
-  context.beginPath();
-  context.moveTo(conversation.x, conversation.y);
-  context.bezierCurveTo(
-    width * .45,
-    height * (.38 + Math.sin(movementTime * .00007) * .05),
-    width * .56,
-    height * (.64 + Math.cos(movementTime * .00006) * .05),
-    colour.x,
-    colour.y
+  paintField(
+    (conversation.x + colour.x) / 2,
+    (conversation.y + colour.y) / 2,
+    Math.min(width, height) * (.08 + pulse * .035),
+    "216,255,79",
+    (.08 + pulse * .09) * energy
   );
-  context.stroke();
 
   for (const trace of unformed) {
     const x = width * trace.x + Math.sin(movementTime * .00009 + trace.phase) * 9;
@@ -294,6 +284,10 @@ rooms.forEach(room => {
   room.addEventListener("click", chooseRoom);
   room.addEventListener("pointerenter", () => thresholdAudio.lean(room.dataset.room));
   room.addEventListener("focus", () => thresholdAudio.lean(room.dataset.room));
+});
+
+document.querySelectorAll(".house-nav a").forEach(link => {
+  link.addEventListener("click", chooseRoom);
 });
 
 addEventListener("pointermove", event => {

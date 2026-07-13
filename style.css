@@ -144,6 +144,41 @@ h1 {
   inset: 0;
 }
 
+.house-nav {
+  position: fixed;
+  top: max(.8rem, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 12;
+  display: flex;
+  gap: .72rem;
+  align-items: center;
+  transform: translateX(-50%);
+  padding: .55rem .78rem;
+  border: 1px solid rgba(222, 217, 204, .12);
+  border-radius: 999px;
+  color: rgba(222, 217, 204, .74);
+  background: rgba(17, 16, 14, .34);
+  backdrop-filter: blur(13px);
+  font-size: clamp(.6rem, 1vw, .72rem);
+  letter-spacing: .08em;
+  white-space: nowrap;
+  transition: opacity .8s ease, border-color .8s ease;
+}
+
+.house-nav:hover,
+.house-nav:focus-within { border-color: rgba(222, 217, 204, .34); }
+
+.house-nav a {
+  color: rgba(222, 217, 204, .5);
+  text-decoration: none;
+  transition: color .6s ease;
+}
+
+.house-nav a:hover,
+.house-nav a:focus-visible { color: var(--ink); }
+
+.house-nav [aria-current="page"] { color: var(--ink); }
+
 .room {
   position: absolute;
   width: clamp(10rem, 28vw, 25rem);
@@ -236,6 +271,7 @@ h1 {
   color: rgba(222, 217, 204, .52);
   font-size: clamp(.68rem, 1vw, .82rem);
   letter-spacing: .17em;
+  white-space: nowrap;
   opacity: .55;
   transition: opacity 1.4s ease, transform 1.8s ease, color 1.4s ease;
 }
@@ -360,6 +396,7 @@ h1 {
   .room-name {
     bottom: -1%;
     opacity: .68;
+    letter-spacing: .1em;
   }
 }
 
