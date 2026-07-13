@@ -31,7 +31,7 @@ button { font: inherit; }
   left: 50%;
   z-index: 30;
   display: flex;
-  gap: .72rem;
+  gap: .6rem;
   align-items: center;
   transform: translateX(-50%);
   padding: .55rem .78rem;
@@ -358,6 +358,7 @@ h1 {
 
 @media (max-width: 650px) {
   .threshold, .after { padding: 1.5rem; }
+  .house-nav { gap: .48rem; padding-inline: .65rem; }
   .architecture { width: 96vw; bottom: 13vh; }
   .coordinates { inset: .9rem; }
   .primary, .echo { width: 88vw; }

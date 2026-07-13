@@ -21,7 +21,6 @@ const unformed = [
   { x: .13, y: .20, phase: .7 },
   { x: .51, y: .18, phase: 2.2 },
   { x: .90, y: .25, phase: 4.1 },
-  { x: .47, y: .88, phase: 1.4 },
   { x: .82, y: .84, phase: 5.3 }
 ];
 
@@ -47,7 +46,7 @@ rooms.forEach(room => {
 
 const visitedCount = rooms.filter(room => room.classList.contains("visited")).length;
 if (visitedCount === 1) houseStatus.textContent = "One room has left a trace.";
-if (visitedCount === rooms.length) houseStatus.textContent = "Two rooms have left traces.";
+if (visitedCount > 1) houseStatus.textContent = `${visitedCount} rooms have left traces.`;
 
 function resize() {
   ratio = Math.min(devicePixelRatio || 1, 2);
@@ -83,6 +82,7 @@ function draw(time) {
   const movementTime = reducedMotion ? 0 : time;
   const conversation = roomCentre(document.querySelector(".room-conversation"));
   const colour = roomCentre(document.querySelector(".room-colour"));
+  const garden = roomCentre(document.querySelector(".room-garden"));
   const energy = entered ? 1 : .34;
   pulse *= .965;
 
@@ -111,10 +111,24 @@ function draw(time) {
     "90,141,255",
     energy * .68 + (visits.colour ? .2 : 0)
   );
+  paintField(
+    garden.x + Math.sin(movementTime * .000075) * 14,
+    garden.y + Math.cos(movementTime * .000095) * 18,
+    garden.radius * 1.55,
+    "126,166,102",
+    energy * .76 + (visits.garden ? .22 : 0)
+  );
+  paintField(
+    garden.x - Math.cos(movementTime * .00009) * 11,
+    garden.y - Math.sin(movementTime * .00007) * 13,
+    garden.radius * 1.36,
+    "232,189,136",
+    energy * .52 + (visits.garden ? .16 : 0)
+  );
 
   paintField(
-    (conversation.x + colour.x) / 2,
-    (conversation.y + colour.y) / 2,
+    (conversation.x + colour.x + garden.x) / 3,
+    (conversation.y + colour.y + garden.y) / 3,
     Math.min(width, height) * (.08 + pulse * .035),
     "112,225,209",
     (.08 + pulse * .09) * energy
@@ -299,7 +313,7 @@ class ThresholdAudio {
   lean(roomName) {
     if (!this.context || !this.filter) return;
     const now = this.context.currentTime;
-    const target = roomName === "colour" ? 940 : 480;
+    const target = roomName === "colour" ? 940 : roomName === "garden" ? 760 : 480;
     this.filter.frequency.cancelScheduledValues(now);
     this.filter.frequency.setValueAtTime(this.filter.frequency.value, now);
     this.filter.frequency.exponentialRampToValueAtTime(target, now + 1.8);

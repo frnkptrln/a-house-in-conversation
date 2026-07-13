@@ -18,9 +18,15 @@ A bright, 96-second audiovisual work. Two autonomous colour fields approach one 
 
 Path: `/rooms/colour/`
 
+### The Garden
+
+A slow 144-second generative work. Deterministic plants grow without a target state, returning changes their density, and touch can invite blooms without controlling the outcome. The threshold's four-note seed becomes the house's first recognizable melody.
+
+Path: `/rooms/garden/`
+
 ## The threshold
 
-The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; future rooms can remember, alter, or resist it. Open rooms appear as atmospheres. Unformed traces leave space for the Garden, Listening Room, Machine Room, Window, and Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
+The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. Open rooms appear as atmospheres. Unformed traces leave space for the Listening Room, Machine Room, Window, and Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
 
 Completed rooms leave a subtle trace at the threshold using local browser storage. Nothing is transmitted, measured, or optimized.
 
@@ -40,7 +46,7 @@ The repository is a static work designed for GitHub Pages. Publish from the root
 
 ## Status
 
-Version 0.8 — two finished rooms and a threshold with its own visual and musical language.
+Version 0.9 — three finished rooms and a threshold with its own visual and musical language.
 
 ## Credit
 

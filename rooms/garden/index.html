@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17251a">
+  <meta name="description" content="The Garden — a slow generative room inside A House in Conversation.">
+  <title>The Garden</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="house-nav" aria-label="House navigation">
+    <a href="../../">house</a>
+    <a href="../conversation/">conversation</a>
+    <a href="../colour/">colour</a>
+    <span aria-current="page">garden</span>
+  </nav>
+
+  <main id="room" data-state="threshold">
+    <section class="threshold" aria-labelledby="garden-title">
+      <h1 id="garden-title">the garden</h1>
+      <button id="enter" type="button">stay</button>
+    </section>
+
+    <section class="performance" aria-label="A slow, interactive garden performance">
+      <canvas
+        id="garden-field"
+        tabindex="0"
+        aria-label="A living garden. Touch, click, or press Space to invite a bloom."
+      ></canvas>
+      <button id="sound-fallback" class="sound-fallback" type="button" hidden>tap for sound</button>
+    </section>
+
+    <section class="ending" aria-label="The garden after the performance">
+      <p>not everything here<br>was planted</p>
+      <button id="again" type="button">stay again</button>
+      <a class="return" href="../../">return to the threshold</a>
+    </section>
+  </main>
+
+  <audio id="soundtrack" src="audio/garden.m4a" preload="auto" playsinline></audio>
+  <script src="script.js"></script>
+</body>
+</html>
