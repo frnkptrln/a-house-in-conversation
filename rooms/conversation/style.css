@@ -113,7 +113,11 @@ h1 {
   border-color: var(--warm);
 }
 
-.return { margin-top: .35rem; color: var(--dim); }
+.return {
+  margin-top: .35rem;
+  color: rgba(222, 217, 204, .74);
+  border-color: rgba(222, 217, 204, .42);
+}
 
 .stage, .after { display: none; }
 .running .threshold { display: none; }
