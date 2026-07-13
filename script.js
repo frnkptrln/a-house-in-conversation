@@ -335,11 +335,22 @@ class ThresholdAudio {
 
 const thresholdAudio = new ThresholdAudio();
 
-async function crossThreshold() {
+function revealRooms({ withSound = false } = {}) {
   entered = true;
   threshold.dataset.state = "house";
   pulse = .7;
-  await thresholdAudio.start();
+
+  if (withSound) return thresholdAudio.start();
+
+  thresholdAudio.muted = true;
+  soundControl.textContent = "listen";
+  soundControl.setAttribute("aria-pressed", "true");
+  return Promise.resolve();
+}
+
+async function crossThreshold() {
+  history.replaceState(null, "", "#rooms");
+  await revealRooms({ withSound: true });
 }
 
 function chooseRoom(event) {
@@ -353,7 +364,15 @@ function chooseRoom(event) {
 
 enter.addEventListener("click", crossThreshold);
 
-soundControl.addEventListener("click", () => {
+soundControl.addEventListener("click", async () => {
+  if (!thresholdAudio.context) {
+    thresholdAudio.muted = false;
+    await thresholdAudio.start();
+    soundControl.textContent = "silence";
+    soundControl.setAttribute("aria-pressed", "false");
+    return;
+  }
+
   const muted = thresholdAudio.toggle();
   soundControl.textContent = muted ? "listen" : "silence";
   soundControl.setAttribute("aria-pressed", String(muted));
@@ -386,4 +405,5 @@ document.addEventListener("visibilitychange", () => {
 });
 
 resize();
+if (location.hash === "#rooms") revealRooms();
 if (!reducedMotion) animationFrame = requestAnimationFrame(draw);
