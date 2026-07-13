@@ -130,21 +130,24 @@ h1,
 }
 
 .ending #again {
-  color: rgba(255, 255, 255, .86);
-  border-color: rgba(255, 255, 255, .5);
+  color: rgba(50, 38, 60, .92);
+  border-color: rgba(50, 38, 60, .5);
+  text-shadow: 0 1px 14px rgba(243, 234, 223, .92);
   opacity: 0;
   transition: opacity 1.5s ease 2.5s;
 }
 
 .ending .return {
   margin-top: .2rem;
-  color: rgba(255, 255, 255, .62);
-  border-bottom: 1px solid rgba(255, 255, 255, .34);
+  color: rgba(50, 38, 60, .78);
+  border-bottom: 1px solid rgba(50, 38, 60, .42);
+  text-shadow: 0 1px 14px rgba(243, 234, 223, .92);
   opacity: 0;
   transition: opacity 1.5s ease 3.1s;
 }
 
-[data-state="running"] .threshold {
+[data-state="running"] .threshold,
+[data-state="ending"] .threshold {
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
@@ -162,8 +165,8 @@ h1,
   pointer-events: auto;
 }
 
-[data-state="ending"] .ending #again { opacity: .8; }
-[data-state="ending"] .ending .return { opacity: .7; }
+[data-state="ending"] .ending #again,
+[data-state="ending"] .ending .return { opacity: 1; }
 
 .sound-fallback {
   position: absolute;
