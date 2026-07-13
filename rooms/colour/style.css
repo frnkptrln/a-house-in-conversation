@@ -144,7 +144,8 @@ h1,
   transition: opacity 1.5s ease 3.1s;
 }
 
-[data-state="running"] .threshold {
+[data-state="running"] .threshold,
+[data-state="ending"] .threshold {
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
