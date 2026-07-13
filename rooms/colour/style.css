@@ -88,6 +88,8 @@ h1,
 
 .ending p {
   color: rgba(255, 255, 255, .92);
+  line-height: .98;
+  letter-spacing: -.055em;
   text-shadow: 0 3px 35px rgba(30, 20, 50, .28);
 }
 
