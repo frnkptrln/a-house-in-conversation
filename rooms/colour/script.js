@@ -27,6 +27,16 @@ let ripples = [];
 let sourceA = { x: width * .27, y: height * .48 };
 let sourceB = { x: width * .73, y: height * .52 };
 
+function rememberVisit(roomName) {
+  try {
+    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    visits[roomName] = Date.now();
+    localStorage.setItem("house-room-visits", JSON.stringify(visits));
+  } catch (error) {
+    // The room remains complete when storage is unavailable.
+  }
+}
+
 function resize() {
   ratio = Math.min(devicePixelRatio || 1, 2);
   width = innerWidth;
@@ -204,6 +214,7 @@ async function begin() {
   room.dataset.state = "running";
   soundFallback.hidden = true;
   running = true;
+  rememberVisit("colour");
   soundtrack.currentTime = 0;
   soundtrack.volume = .88;
   soundtrack.muted = false;

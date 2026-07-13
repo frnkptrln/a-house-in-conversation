@@ -50,7 +50,8 @@ h1,
 }
 
 #enter,
-#again {
+#again,
+.return {
   margin-top: 2.2rem;
   padding: .7rem 0;
   border: 0;
@@ -58,10 +59,15 @@ h1,
   color: var(--ink);
   background: transparent;
   cursor: pointer;
+  text-decoration: none;
 }
 
 #enter:hover,
-#again:hover { border-color: var(--ink); }
+#again:hover,
+.return:hover,
+#enter:focus-visible,
+#again:focus-visible,
+.return:focus-visible { border-color: var(--ink); }
 
 .performance {
   position: absolute;
@@ -100,6 +106,14 @@ h1,
   transition: opacity 1.5s ease 2.5s;
 }
 
+.ending .return {
+  margin-top: .2rem;
+  color: rgba(255, 255, 255, .62);
+  border-bottom: 1px solid rgba(255, 255, 255, .34);
+  opacity: 0;
+  transition: opacity 1.5s ease 3.1s;
+}
+
 [data-state="running"] .threshold {
   visibility: hidden;
   opacity: 0;
@@ -119,6 +133,7 @@ h1,
 }
 
 [data-state="ending"] .ending #again { opacity: .8; }
+[data-state="ending"] .ending .return { opacity: .7; }
 
 .sound-fallback {
   position: absolute;
