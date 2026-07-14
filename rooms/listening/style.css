@@ -116,11 +116,19 @@ h1,
   letter-spacing: -.045em;
 }
 
+.listening-rule {
+  position: relative;
+  margin: 1.55rem 0 0;
+  color: rgba(223, 231, 234, .58);
+  font: 400 clamp(.78rem, 1.25vw, .98rem)/1.62 var(--sans);
+  letter-spacing: .045em;
+}
+
 #enter,
 #again,
 .return {
   position: relative;
-  margin-top: 2rem;
+  margin-top: 1.55rem;
   padding: .72rem 0;
   border: 0;
   border-bottom: 1px solid rgba(223, 231, 234, .34);
@@ -140,6 +148,12 @@ h1,
   color: var(--pearl);
   border-color: var(--pearl);
   letter-spacing: .025em;
+}
+
+#enter:disabled,
+#again:disabled {
+  cursor: wait;
+  opacity: .58;
 }
 
 .return { margin-top: .18rem; }
