@@ -6,6 +6,8 @@ const fieldContext = canvas.getContext("2d");
 const enter = document.querySelector("#enter");
 const again = document.querySelector("#again");
 const listeningTrack = document.querySelector("#listening-track");
+const nearTrack = document.querySelector("#near-track");
+const depthTrack = document.querySelector("#depth-track");
 const soundFallback = document.querySelector("#sound-fallback");
 const listeningStatus = document.querySelector("#listening-status");
 
@@ -60,8 +62,11 @@ function rememberVisit() {
 }
 
 class ListeningAudio {
-  constructor(track) {
+  constructor(track, nearTrack, depthTrack) {
     this.track = track;
+    this.nearTrack = nearTrack;
+    this.depthTrack = depthTrack;
+    this.mediaTracks = [nearTrack, depthTrack].filter(Boolean);
     this.context = null;
     this.input = null;
     this.master = null;
@@ -83,14 +88,18 @@ class ListeningAudio {
     this.generation = 0;
     this.fallbackRequired = false;
     this.forceDirect = new URLSearchParams(location.search).has("direct");
+    this.preferMedia = !this.forceDirect
+      && this.mediaTracks.length === 2
+      && navigator.maxTouchPoints > 0
+      && matchMedia("(pointer: coarse)").matches;
   }
 
   get ready() {
-    return Boolean(this.buffer) || this.forceDirect || this.fallbackRequired;
+    return this.preferMedia || Boolean(this.buffer) || this.forceDirect || this.fallbackRequired;
   }
 
   warm() {
-    if (this.forceDirect || this.encodedAudio) return this.encodedAudio;
+    if (this.forceDirect || this.preferMedia || this.encodedAudio) return this.encodedAudio;
     const source = new URL(this.track.getAttribute("src"), location.href);
     this.encodedAudio = fetch(source)
       .then(response => {
@@ -105,7 +114,7 @@ class ListeningAudio {
   }
 
   setup() {
-    if (this.context || this.forceDirect) return;
+    if (this.context || this.forceDirect || this.preferMedia) return;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
 
@@ -207,6 +216,15 @@ class ListeningAudio {
     return this.bufferPromise;
   }
 
+  playElement(media) {
+    try {
+      const playback = media.play();
+      return Promise.resolve(playback).then(() => true, () => false);
+    } catch (error) {
+      return Promise.resolve(false);
+    }
+  }
+
   stop() {
     window.clearTimeout(this.stopTimer);
     this.stopTimer = 0;
@@ -220,17 +238,25 @@ class ListeningAudio {
       this.source.disconnect();
       this.source = null;
     }
-    this.track.pause();
+    [this.track, ...this.mediaTracks].forEach(media => media.pause());
     this.playing = false;
   }
 
   async start() {
     this.stop();
-    this.track.currentTime = 0;
+    [this.track, ...this.mediaTracks].forEach(media => {
+      try {
+        media.currentTime = 0;
+      } catch (error) {
+        // Metadata may still be arriving; play() will begin at the start.
+      }
+    });
     this.track.volume = 1;
     this.track.muted = false;
+    this.lastUpdate = 0;
 
     if (this.forceDirect || this.fallbackRequired) return this.startDirect();
+    if (this.preferMedia) return this.startMedia();
 
     try {
       this.setup();
@@ -284,10 +310,59 @@ class ListeningAudio {
     }
   }
 
+  async startMedia() {
+    this.nearTrack.volume = .34;
+    this.depthTrack.volume = .012;
+    this.nearTrack.muted = false;
+    this.depthTrack.muted = false;
+
+    // Start the complete mix in the same gesture. Older mobile Safari versions
+    // that allow only one reliable media stream will therefore still have sound.
+    this.track.muted = true;
+    const starts = [
+      this.playElement(this.nearTrack),
+      this.playElement(this.depthTrack),
+      this.playElement(this.track)
+    ];
+    const [nearStarted, depthStarted, fallbackStarted] = await Promise.all(starts);
+    const stemsActive = nearStarted
+      && depthStarted
+      && !this.nearTrack.paused
+      && !this.depthTrack.paused;
+
+    if (stemsActive) {
+      this.track.pause();
+      this.track.muted = false;
+      try {
+        this.track.currentTime = 0;
+      } catch (error) {
+        // The fallback remains ready for a later restart.
+      }
+      this.mode = "media";
+      this.playing = true;
+      room.dataset.audio = "spatial";
+      soundFallback.hidden = true;
+      return true;
+    }
+
+    this.mediaTracks.forEach(media => media.pause());
+    this.track.muted = false;
+    if (fallbackStarted && !this.track.paused) {
+      this.mode = "direct";
+      this.playing = true;
+      room.dataset.audio = "direct";
+      soundFallback.hidden = true;
+      return true;
+    }
+    return this.startDirect();
+  }
+
   async startDirect() {
+    this.mediaTracks.forEach(media => media.pause());
+    this.track.muted = false;
     try {
       const play = this.track.play();
-      await play;
+      if (play && typeof play.then === "function") await play;
       this.mode = "direct";
       this.playing = true;
       room.dataset.audio = "direct";
@@ -304,14 +379,21 @@ class ListeningAudio {
   }
 
   update(now, quiet, movement, place) {
-    if (!this.playing || this.mode !== "buffer") return;
+    if (!this.playing || (this.mode !== "buffer" && this.mode !== "media")) return;
     if (now - this.lastUpdate <= 90) return;
 
     this.lastUpdate = now;
-    const audioNow = this.context.currentTime;
     const motion = smoothstep(.06, .34, movement);
     const nearLevel = .32 + motion * .43 - quiet * .08;
     const depthLevel = (.012 + quiet ** 1.12 * .82) * (1 - motion * .9);
+
+    if (this.mode === "media") {
+      this.nearTrack.volume = clamp(nearLevel, .08, .9);
+      this.depthTrack.volume = clamp(depthLevel, .004, .9);
+      return;
+    }
+
+    const audioNow = this.context.currentTime;
     const nearCutoff = 3_400 + motion * 5_600;
     const depthCutoff = 1_700 + quiet * 7_800;
     const pan = (place.x - .5) * 1.4;
@@ -338,6 +420,7 @@ class ListeningAudio {
 
   pause() {
     if (this.mode === "direct") this.track.pause();
+    if (this.mode === "media") this.mediaTracks.forEach(media => media.pause());
     if (this.mode === "buffer" && this.context?.state === "running") this.context.suspend();
   }
 
@@ -348,7 +431,13 @@ class ListeningAudio {
         await this.context.resume();
       }
       if (this.mode === "direct" && this.track.paused) {
-        await this.track.play();
+        const started = await this.playElement(this.track);
+        if (!started) throw new Error("Direct playback stayed paused");
+      }
+      if (this.mode === "media" && this.mediaTracks.some(media => media.paused)) {
+        const starts = this.mediaTracks.map(media => this.playElement(media));
+        const started = await Promise.all(starts);
+        if (!started.every(Boolean)) throw new Error("Stem playback stayed paused");
       }
       soundFallback.hidden = true;
       return true;
@@ -362,11 +451,11 @@ class ListeningAudio {
     if (this.mode === "buffer" && this.context) {
       return Math.max(0, this.context.currentTime - this.startedAt);
     }
+    if (this.mode === "media") return this.nearTrack.currentTime || 0;
     return this.track.currentTime || 0;
   }
 }
-
-const listeningAudio = new ListeningAudio(listeningTrack);
+const listeningAudio = new ListeningAudio(listeningTrack, nearTrack, depthTrack);
 listeningAudio.warm()?.catch(() => {});
 
 function resize() {
@@ -614,6 +703,7 @@ soundFallback.addEventListener("click", async event => {
 });
 
 listeningTrack.addEventListener("ended", finish);
+nearTrack.addEventListener("ended", finish);
 addEventListener("resize", resize);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) listeningAudio.pause();
