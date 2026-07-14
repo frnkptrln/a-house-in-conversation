@@ -184,7 +184,7 @@ h1 {
 
 .room {
   position: absolute;
-  width: clamp(8rem, 18vw, 17rem);
+  width: clamp(7.5rem, 15.5vw, 15rem);
   aspect-ratio: .78;
   transform: translate(-50%, -50%);
   color: var(--ink);
@@ -194,20 +194,26 @@ h1 {
 }
 
 .room-conversation {
-  left: 24%;
-  top: 55%;
+  left: 18%;
+  top: 58%;
 }
 
 .room-colour {
-  left: 50%;
-  top: 43%;
-  width: clamp(9rem, 20vw, 19rem);
+  left: 41%;
+  top: 39%;
+  width: clamp(8.5rem, 17.5vw, 17rem);
 }
 
 .room-garden {
-  left: 76%;
-  top: 57%;
-  width: clamp(8.5rem, 19vw, 18rem);
+  left: 64%;
+  top: 62%;
+  width: clamp(8rem, 16.5vw, 16rem);
+}
+
+.room-listening {
+  left: 84%;
+  top: 40%;
+  width: clamp(7.5rem, 15.5vw, 15rem);
 }
 
 .aperture {
@@ -279,6 +285,19 @@ h1 {
 }
 
 .room-garden .aperture::after { background: #a7c47e; }
+
+.room-listening .aperture {
+  animation-delay: -3s;
+  background:
+    radial-gradient(ellipse at 42% 38%, rgba(201, 213, 215, .25), transparent 31%),
+    radial-gradient(ellipse at 63% 59%, rgba(112, 140, 161, .32), transparent 45%),
+    radial-gradient(ellipse at 34% 67%, rgba(182, 142, 114, .14), transparent 38%);
+  box-shadow:
+    -24px -8px 105px rgba(201, 213, 215, .07),
+    24px 14px 120px rgba(112, 140, 161, .11);
+}
+
+.room-listening .aperture::after { background: #8ea8b7; }
 
 @keyframes breathe {
   from { transform: scale(.78) rotate(-3deg) skewY(-1deg); filter: blur(5px); }
@@ -408,20 +427,26 @@ h1 {
   }
 
   .room-conversation {
-    left: 30%;
+    left: 28%;
     top: 31%;
   }
 
   .room-colour {
-    left: 70%;
-    top: 49%;
+    left: 72%;
+    top: 33%;
     width: min(40vw, 12rem);
   }
 
   .room-garden {
-    left: 37%;
-    top: 75%;
+    left: 28%;
+    top: 72%;
     width: min(39vw, 11.5rem);
+  }
+
+  .room-listening {
+    left: 72%;
+    top: 70%;
+    width: min(37vw, 11rem);
   }
 
   .room-name {
@@ -432,10 +457,11 @@ h1 {
 }
 
 @media (max-height: 520px) and (orientation: landscape) {
-  .room { width: min(25vw, 10rem); }
-  .room-conversation { left: 22%; top: 53%; }
-  .room-colour { left: 50%; top: 45%; }
-  .room-garden { left: 78%; top: 54%; }
+  .room { width: min(21vw, 9rem); }
+  .room-conversation { left: 14%; top: 55%; }
+  .room-colour { left: 38%; top: 43%; }
+  .room-garden { left: 63%; top: 57%; }
+  .room-listening { left: 86%; top: 44%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

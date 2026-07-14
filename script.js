@@ -20,7 +20,6 @@ let pointer = { x: width / 2, y: height / 2, visible: false };
 const unformed = [
   { x: .13, y: .20, phase: .7 },
   { x: .51, y: .18, phase: 2.2 },
-  { x: .90, y: .25, phase: 4.1 },
   { x: .82, y: .84, phase: 5.3 }
 ];
 
@@ -83,6 +82,7 @@ function draw(time) {
   const conversation = roomCentre(document.querySelector(".room-conversation"));
   const colour = roomCentre(document.querySelector(".room-colour"));
   const garden = roomCentre(document.querySelector(".room-garden"));
+  const listening = roomCentre(document.querySelector(".room-listening"));
   const energy = entered ? 1 : .34;
   pulse *= .965;
 
@@ -125,10 +125,24 @@ function draw(time) {
     "232,189,136",
     energy * .52 + (visits.garden ? .16 : 0)
   );
+  paintField(
+    listening.x + Math.sin(movementTime * .000055) * 12,
+    listening.y + Math.cos(movementTime * .00007) * 10,
+    listening.radius * 1.62,
+    "142,168,183",
+    energy * .66 + (visits.listening ? .22 : 0)
+  );
+  paintField(
+    listening.x - Math.cos(movementTime * .000045) * 9,
+    listening.y - Math.sin(movementTime * .00006) * 11,
+    listening.radius * 1.34,
+    "201,213,215",
+    energy * .38 + (visits.listening ? .15 : 0)
+  );
 
   paintField(
-    (conversation.x + colour.x + garden.x) / 3,
-    (conversation.y + colour.y + garden.y) / 3,
+    (conversation.x + colour.x + garden.x + listening.x) / 4,
+    (conversation.y + colour.y + garden.y + listening.y) / 4,
     Math.min(width, height) * (.08 + pulse * .035),
     "112,225,209",
     (.08 + pulse * .09) * energy
@@ -313,7 +327,13 @@ class ThresholdAudio {
   lean(roomName) {
     if (!this.context || !this.filter) return;
     const now = this.context.currentTime;
-    const target = roomName === "colour" ? 940 : roomName === "garden" ? 760 : 480;
+    const target = roomName === "colour"
+      ? 940
+      : roomName === "garden"
+        ? 760
+        : roomName === "listening"
+          ? 1_080
+          : 480;
     this.filter.frequency.cancelScheduledValues(now);
     this.filter.frequency.setValueAtTime(this.filter.frequency.value, now);
     this.filter.frequency.exponentialRampToValueAtTime(target, now + 1.8);
