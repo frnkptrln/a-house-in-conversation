@@ -120,7 +120,8 @@ h1 {
 }
 
 .stage, .after { display: none; }
-.running .threshold { display: none; }
+.running .threshold,
+.finished .threshold { display: none; }
 .running .stage { display: block; }
 .finished .stage { display: none; }
 .finished .after { display: grid; }
