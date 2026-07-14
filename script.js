@@ -5,6 +5,7 @@ const canvas = document.querySelector("#threshold-field");
 const context = canvas.getContext("2d");
 const enter = document.querySelector("#enter");
 const soundControl = document.querySelector("#sound");
+const thresholdTrack = document.querySelector("#threshold-track");
 const houseStatus = document.querySelector("#house-status");
 const rooms = [...document.querySelectorAll(".room")];
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -172,7 +173,12 @@ function draw(time) {
 }
 
 class ThresholdAudio {
-  constructor() {
+  constructor(track) {
+    this.track = track;
+    this.preferNative = Boolean(track)
+      && navigator.maxTouchPoints > 0
+      && matchMedia("(pointer: coarse)").matches;
+    this.nativeStarted = false;
     this.context = null;
     this.master = null;
     this.filter = null;
@@ -182,21 +188,46 @@ class ThresholdAudio {
     this.motifForm = 0;
   }
 
+  async startNative() {
+    if (!this.track) return false;
+
+    this.track.volume = .92;
+    this.track.muted = this.muted;
+    try {
+      const playback = this.track.play();
+      if (playback && typeof playback.then === "function") await playback;
+      this.nativeStarted = !this.track.paused;
+      return this.nativeStarted;
+    } catch (error) {
+      this.track.pause();
+      this.nativeStarted = false;
+      return false;
+    }
+  }
+
   async start() {
+    if (this.preferNative) return this.startNative();
+
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) {
       soundControl.hidden = true;
-      return;
+      return false;
     }
 
     if (this.context) {
-      await this.context.resume();
+      try {
+        await this.context.resume();
+      } catch (error) {
+        return false;
+      }
+      if (this.context.state !== "running") return false;
       this.fadeTo(this.muted ? .0001 : .72, 1.8);
       this.scheduleMotif(2.8);
-      return;
+      return true;
     }
 
     this.context = new AudioContext();
+    const resume = this.context.resume();
     this.master = this.context.createGain();
     this.master.gain.value = .0001;
     this.master.connect(this.context.destination);
@@ -253,9 +284,15 @@ class ThresholdAudio {
     this.voices.forEach(voice => lfoDepth.connect(voice.detune));
     lfo.start();
 
-    await this.context.resume();
+    try {
+      await resume;
+    } catch (error) {
+      return false;
+    }
+    if (this.context.state !== "running") return false;
     this.fadeTo(this.muted ? .0001 : .72, 3.2);
     this.scheduleMotif(2.8);
+    return true;
   }
 
   playSeed(frequency, when, pan, duration = 2.7) {
@@ -325,7 +362,7 @@ class ThresholdAudio {
   }
 
   lean(roomName) {
-    if (!this.context || !this.filter) return;
+    if (this.preferNative || !this.context || !this.filter) return;
     const now = this.context.currentTime;
     const target = roomName === "colour"
       ? 940
@@ -341,6 +378,16 @@ class ThresholdAudio {
 
   toggle() {
     this.muted = !this.muted;
+
+    if (this.preferNative) {
+      this.track.muted = this.muted;
+      if (!this.muted && this.track.paused) {
+        const playback = this.track.play();
+        if (playback && typeof playback.catch === "function") playback.catch(() => {});
+      }
+      return this.muted;
+    }
+
     if (!this.muted && this.context?.state === "suspended") this.context.resume();
     this.fadeTo(this.muted ? .0001 : .72, 1.1);
     return this.muted;
@@ -349,18 +396,41 @@ class ThresholdAudio {
   fadeOut() {
     window.clearTimeout(this.motifTimer);
     this.motifTimer = 0;
+
+    if (this.preferNative) {
+      const track = this.track;
+      const initial = track.volume;
+      const started = performance.now();
+      const fade = () => {
+        const amount = Math.min(1, Math.max(0, (performance.now() - started) / 1_050));
+        track.volume = Math.max(.001, initial * (1 - amount));
+        if (amount < 1) requestAnimationFrame(fade);
+        else track.pause();
+      };
+      requestAnimationFrame(fade);
+      return;
+    }
+
     this.fadeTo(.0001, 1.05);
   }
 }
 
-const thresholdAudio = new ThresholdAudio();
+const thresholdAudio = new ThresholdAudio(thresholdTrack);
 
 function revealRooms({ withSound = false } = {}) {
   entered = true;
   threshold.dataset.state = "house";
   pulse = .7;
 
-  if (withSound) return thresholdAudio.start();
+  if (withSound) {
+    return thresholdAudio.start().then(started => {
+      if (started) return true;
+      thresholdAudio.muted = true;
+      soundControl.textContent = "listen";
+      soundControl.setAttribute("aria-pressed", "true");
+      return false;
+    });
+  }
 
   thresholdAudio.muted = true;
   soundControl.textContent = "listen";
@@ -385,11 +455,12 @@ function chooseRoom(event) {
 enter.addEventListener("click", crossThreshold);
 
 soundControl.addEventListener("click", async () => {
-  if (!thresholdAudio.context) {
+  if (!thresholdAudio.context && !thresholdAudio.nativeStarted) {
     thresholdAudio.muted = false;
-    await thresholdAudio.start();
-    soundControl.textContent = "silence";
-    soundControl.setAttribute("aria-pressed", "false");
+    const started = await thresholdAudio.start();
+    thresholdAudio.muted = !started;
+    soundControl.textContent = started ? "silence" : "listen";
+    soundControl.setAttribute("aria-pressed", String(!started));
     return;
   }
 
@@ -419,6 +490,16 @@ addEventListener("pointerdown", event => {
 
 addEventListener("resize", resize);
 document.addEventListener("visibilitychange", () => {
+  if (thresholdAudio.preferNative) {
+    if (document.hidden) {
+      thresholdTrack.pause();
+    } else if (entered && !thresholdAudio.muted) {
+      const playback = thresholdTrack.play();
+      if (playback && typeof playback.catch === "function") playback.catch(() => {});
+    }
+    return;
+  }
+
   if (!thresholdAudio.context) return;
   if (document.hidden) thresholdAudio.context.suspend();
   else if (entered && !thresholdAudio.muted) thresholdAudio.context.resume();
