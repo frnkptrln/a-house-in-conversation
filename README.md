@@ -24,9 +24,15 @@ A slow 144-second generative work. Deterministic plants grow without a target st
 
 Path: `/rooms/garden/`
 
+### The Listening Room
+
+A 216-second spatial composition. Movement changes the listening position and foregrounds close, tactile sound; stillness gradually reveals distance, melody, and counterpoint. Nothing observes the visitor beyond local pointer, touch, or keyboard input.
+
+Path: `/rooms/listening/`
+
 ## The threshold
 
-The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. Open rooms appear as atmospheres. Unformed traces leave space for the Listening Room, Machine Room, Window, and Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
+The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. Open rooms appear as atmospheres. Unformed traces leave space for the Machine Room, Window, and Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
 
 Completed rooms leave a subtle trace at the threshold using local browser storage. Nothing is transmitted, measured, or optimized.
 
@@ -46,7 +52,7 @@ The repository is a static work designed for GitHub Pages. Publish from the root
 
 ## Status
 
-Version 0.9 — three finished rooms and a threshold with its own visual and musical language.
+Version 1.0 — four finished rooms and a threshold with its own visual and musical language.
 
 ## Credit
 

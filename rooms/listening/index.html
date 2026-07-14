@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1117">
+  <meta name="description" content="The Listening Room — a long-form spatial composition inside A House in Conversation.">
+  <title>The Listening Room — A House in Conversation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-room-state="threshold">
+  <nav class="house-nav" aria-label="House navigation">
+    <a href="../../#rooms">house</a>
+    <a href="../conversation/">conversation</a>
+    <a href="../colour/">colour</a>
+    <a href="../garden/">garden</a>
+    <span aria-current="page">listening</span>
+  </nav>
+
+  <main id="room" data-state="threshold" data-listening="near">
+    <section class="threshold" aria-labelledby="listening-title">
+      <h1 id="listening-title">the listening<br>room</h1>
+      <p class="listening-rule">movement brings the room near<br>stillness lets distance arrive</p>
+      <button id="enter" type="button">take a place</button>
+    </section>
+
+    <section class="performance" aria-label="Spatial listening performance">
+      <canvas
+        id="listening-field"
+        tabindex="0"
+        aria-label="A listening field. Movement changes the listening position; stillness lets distant voices arrive."
+      ></canvas>
+      <button id="sound-fallback" class="sound-fallback" type="button" hidden>tap for sound</button>
+      <p id="listening-status" class="visually-hidden" aria-live="polite">The room is near.</p>
+    </section>
+
+    <section class="ending" aria-label="Room ending">
+      <p>the room<br>listened back</p>
+      <button id="again" type="button">again</button>
+      <a class="return" href="../../#rooms">return to the rooms</a>
+    </section>
+  </main>
+
+  <audio id="listening-track" src="audio/listening.m4a" preload="metadata" playsinline></audio>
+  <script src="script.js"></script>
+</body>
+</html>
