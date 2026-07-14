@@ -2,9 +2,9 @@
 
 The fourth room in **A House in Conversation**: a 216-second spatial composition in which doing less reveals more.
 
-Movement changes the listening position and foregrounds a close, tactile stem. After movement stops, a second synchronized stem opens slowly: first space, then sustained lines, then counterpoint. There is no score, success state, body tracking, microphone, camera, analytics, or external service. Pointer, touch, and keyboard input remain entirely inside the browser.
+Movement foregrounds a close, tactile voice. After movement stops, distance begins to arrive after a short pause and opens fully over roughly ten seconds. Horizontal position changes the listening position; there is no hidden vertical mapping. There is no score, success state, body tracking, microphone, camera, analytics, or external service. Pointer, touch, and keyboard input remain entirely inside the browser.
 
-The two fixed stems are deterministic renders of the house's E–B–F-sharp–A seed. For playback they are interlaced into one stereo file: Web Audio separates the two voices again, while mobile Safari and browsers without a reliable audio graph can play the same file directly. This avoids asking a phone to unlock and synchronize two media elements at once.
+The two fixed stems are deterministic renders of the house's E–B–F-sharp–A seed. They are interlaced into one stereo delivery file. The primary playback path fetches and decodes that file into a Web Audio buffer, then separates the near and depth voices for a clearly audible crossfade. This avoids Safari's unreliable `MediaElementSource` path while retaining a single synchronized source on phones. If Web Audio decoding is unavailable, the same file remains available as a musically complete fixed-mix fallback; that fallback is intentionally non-interactive.
 
 The recordings are final material for this room, not a runtime dependency on [`the-weaving-sound`](https://github.com/frnkptrln/the-weaving-sound). That repository remains the wider SuperCollider workshop and anthology; the house remains the finished audiovisual work.
 
