@@ -23,6 +23,7 @@ let activity = 0;
 let activityImpulse = 0;
 let stillness = 0;
 let quietSince = 0;
+let lastStateUpdate = 0;
 let statusState = "near";
 let lastPoint = null;
 let position = { x: .5, y: .52 };
@@ -43,6 +44,11 @@ function smoothstep(minimum, maximum, value) {
   return amount * amount * (3 - 2 * amount);
 }
 
+function approach(current, target, seconds, milliseconds) {
+  const amount = 1 - Math.exp(-milliseconds / Math.max(1, seconds * 1_000));
+  return current + (target - current) * amount;
+}
+
 function rememberVisit() {
   try {
     const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
@@ -57,6 +63,7 @@ class ListeningAudio {
   constructor(track) {
     this.track = track;
     this.context = null;
+    this.input = null;
     this.master = null;
     this.nearGain = null;
     this.depthGain = null;
@@ -64,21 +71,46 @@ class ListeningAudio {
     this.depthFilter = null;
     this.nearPan = null;
     this.depthPan = null;
-    this.webAudio = false;
+    this.source = null;
+    this.buffer = null;
+    this.encodedAudio = null;
+    this.bufferPromise = null;
+    this.mode = "waiting";
     this.playing = false;
+    this.startedAt = 0;
     this.lastUpdate = 0;
     this.stopTimer = 0;
-    this.directPlayback = new URLSearchParams(location.search).has("direct")
-      || /iPad|iPhone|iPod/.test(navigator.userAgent)
-      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    this.generation = 0;
+    this.fallbackRequired = false;
+    this.forceDirect = new URLSearchParams(location.search).has("direct");
+  }
+
+  get ready() {
+    return Boolean(this.buffer) || this.forceDirect || this.fallbackRequired;
+  }
+
+  warm() {
+    if (this.forceDirect || this.encodedAudio) return this.encodedAudio;
+    const source = new URL(this.track.getAttribute("src"), location.href);
+    this.encodedAudio = fetch(source)
+      .then(response => {
+        if (!response.ok) throw new Error("The listening score could not be loaded");
+        return response.arrayBuffer();
+      })
+      .catch(error => {
+        this.encodedAudio = null;
+        throw error;
+      });
+    return this.encodedAudio;
   }
 
   setup() {
-    if (this.context || this.directPlayback) return;
+    if (this.context || this.forceDirect) return;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
 
     this.context = new AudioContext();
+    this.input = this.context.createGain();
     this.master = this.context.createGain();
     this.master.gain.value = .0001;
 
@@ -92,19 +124,18 @@ class ListeningAudio {
 
     this.nearGain = this.context.createGain();
     this.depthGain = this.context.createGain();
-    this.nearGain.gain.value = .562;
-    this.depthGain.gain.value = .022;
+    this.nearGain.gain.value = .34;
+    this.depthGain.gain.value = .012;
 
     this.nearFilter = this.context.createBiquadFilter();
     this.depthFilter = this.context.createBiquadFilter();
     this.nearFilter.type = "lowpass";
     this.depthFilter.type = "lowpass";
-    this.nearFilter.frequency.value = 6_400;
-    this.depthFilter.frequency.value = 3_100;
+    this.nearFilter.frequency.value = 4_200;
+    this.depthFilter.frequency.value = 1_800;
     this.nearFilter.Q.value = .38;
     this.depthFilter.Q.value = .3;
 
-    const source = this.context.createMediaElementSource(this.track);
     const splitter = this.context.createChannelSplitter(2);
     const nearSum = this.context.createGain();
     const depthSum = this.context.createGain();
@@ -116,7 +147,7 @@ class ListeningAudio {
       coefficient.connect(target);
     };
 
-    source.connect(splitter);
+    this.input.connect(splitter);
     connectMatrix(0, nearSum, 1.5);
     connectMatrix(1, nearSum, -.5);
     connectMatrix(0, depthSum, -.5);
@@ -132,43 +163,139 @@ class ListeningAudio {
       nearSum.connect(this.nearFilter).connect(this.nearGain).connect(this.master);
       depthSum.connect(this.depthFilter).connect(this.depthGain).connect(this.master);
     }
-    this.webAudio = true;
+  }
+
+  decode(encoded) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const succeed = buffer => {
+        if (settled) return;
+        settled = true;
+        resolve(buffer);
+      };
+      const fail = error => {
+        if (settled) return;
+        settled = true;
+        reject(error);
+      };
+
+      try {
+        const decoded = this.context.decodeAudioData(encoded.slice(0), succeed, fail);
+        if (decoded && typeof decoded.then === "function") decoded.then(succeed, fail);
+      } catch (error) {
+        fail(error);
+      }
+    });
+  }
+
+  prepare() {
+    if (this.buffer) return Promise.resolve(this.buffer);
+    if (!this.context) return Promise.reject(new Error("Web Audio is unavailable"));
+    if (!this.bufferPromise) {
+      this.bufferPromise = this.warm()
+        .then(encoded => this.decode(encoded))
+        .then(buffer => {
+          if (buffer.numberOfChannels < 2) throw new Error("The listening score is not stereo");
+          this.buffer = buffer;
+          return buffer;
+        })
+        .catch(error => {
+          this.bufferPromise = null;
+          throw error;
+        });
+    }
+    return this.bufferPromise;
+  }
+
+  stop() {
+    window.clearTimeout(this.stopTimer);
+    this.stopTimer = 0;
+    this.generation += 1;
+    if (this.source) {
+      try {
+        this.source.stop();
+      } catch (error) {
+        // A source that already ended needs no further action.
+      }
+      this.source.disconnect();
+      this.source = null;
+    }
+    this.track.pause();
+    this.playing = false;
   }
 
   async start() {
-    window.clearTimeout(this.stopTimer);
-    this.stopTimer = 0;
-    this.setup();
-
-    this.track.pause();
+    this.stop();
     this.track.currentTime = 0;
     this.track.volume = 1;
     this.track.muted = false;
 
-    if (this.webAudio) {
+    if (this.forceDirect || this.fallbackRequired) return this.startDirect();
+
+    try {
+      this.setup();
+      if (!this.context) throw new Error("Web Audio is unavailable");
+
+      const resume = this.context.state === "suspended"
+        ? this.context.resume()
+        : Promise.resolve();
+      const [buffer] = await Promise.all([this.prepare(), resume]);
+      if (this.context.state !== "running") {
+        await this.context.resume();
+      }
+      if (this.context.state !== "running") {
+        throw new Error("Audio context stayed suspended");
+      }
+
       const now = this.context.currentTime;
       this.nearGain.gain.cancelScheduledValues(now);
       this.depthGain.gain.cancelScheduledValues(now);
+      this.nearFilter.frequency.cancelScheduledValues(now);
+      this.depthFilter.frequency.cancelScheduledValues(now);
       this.master.gain.cancelScheduledValues(now);
-      this.nearGain.gain.setValueAtTime(.562, now);
-      this.depthGain.gain.setValueAtTime(.022, now);
+      this.nearGain.gain.setValueAtTime(.34, now);
+      this.depthGain.gain.setValueAtTime(.012, now);
+      this.nearFilter.frequency.setValueAtTime(4_200, now);
+      this.depthFilter.frequency.setValueAtTime(1_800, now);
       this.master.gain.setValueAtTime(.0001, now);
-      this.master.gain.exponentialRampToValueAtTime(1.18, now + 4.2);
-    }
+      this.master.gain.exponentialRampToValueAtTime(1.08, now + 2.8);
 
-    const play = this.track.play();
-    const resume = this.context?.state === "suspended"
-      ? this.context.resume()
-      : Promise.resolve();
-    try {
-      await Promise.all([play, resume]);
-      if (this.context && this.context.state !== "running") throw new Error("Audio context stayed suspended");
+      const source = this.context.createBufferSource();
+      const generation = ++this.generation;
+      source.buffer = buffer;
+      source.connect(this.input);
+      source.onended = () => {
+        if (generation !== this.generation || !this.playing) return;
+        this.playing = false;
+        finish();
+      };
+      this.source = source;
+      this.startedAt = now;
+      this.mode = "buffer";
       this.playing = true;
-      room.dataset.audio = this.webAudio ? "spatial" : "direct";
+      room.dataset.audio = "spatial";
+      soundFallback.hidden = true;
+      source.start(0);
+      return true;
+    } catch (error) {
+      this.fallbackRequired = true;
+      this.bufferPromise = null;
+      return this.startDirect();
+    }
+  }
+
+  async startDirect() {
+    try {
+      const play = this.track.play();
+      await play;
+      this.mode = "direct";
+      this.playing = true;
+      room.dataset.audio = "direct";
       soundFallback.hidden = true;
       return true;
     } catch (error) {
       this.track.pause();
+      this.mode = "waiting";
       this.playing = false;
       room.dataset.audio = "waiting";
       soundFallback.hidden = false;
@@ -177,61 +304,70 @@ class ListeningAudio {
   }
 
   update(now, quiet, movement, place) {
-    if (!this.playing) return;
+    if (!this.playing || this.mode !== "buffer") return;
+    if (now - this.lastUpdate <= 90) return;
 
-    if (!this.webAudio) return;
+    this.lastUpdate = now;
+    const audioNow = this.context.currentTime;
+    const motion = smoothstep(.06, .34, movement);
+    const nearLevel = .32 + motion * .43 - quiet * .08;
+    const depthLevel = (.012 + quiet ** 1.12 * .82) * (1 - motion * .9);
+    const nearCutoff = 3_400 + motion * 5_600;
+    const depthCutoff = 1_700 + quiet * 7_800;
+    const pan = (place.x - .5) * 1.4;
 
-    if (now - this.lastUpdate > 170) {
-      this.lastUpdate = now;
-      const audioNow = this.context.currentTime;
-      const nearLevel = .5 + movement * .1 - quiet * .05;
-      const depthLevel = .0175 + quiet ** 1.62 * .588;
-      const nearCutoff = 1_900 + place.y * 6_900 + movement * 1_000;
-      const depthCutoff = 2_200 + quiet * 6_200 + (1 - place.y) * 700;
-      const pan = (place.x - .5) * 1.12;
-
-      this.nearGain.gain.setTargetAtTime(nearLevel, audioNow, .62);
-      this.depthGain.gain.setTargetAtTime(depthLevel, audioNow, 2.7);
-      this.nearFilter.frequency.setTargetAtTime(nearCutoff, audioNow, 1.4);
-      this.depthFilter.frequency.setTargetAtTime(depthCutoff, audioNow, 2.2);
-      if (this.nearPan) {
-        this.nearPan.pan.setTargetAtTime(pan, audioNow, .8);
-        this.depthPan.pan.setTargetAtTime(-pan * .42, audioNow, 2.1);
-      }
+    this.nearGain.gain.setTargetAtTime(nearLevel, audioNow, motion > .2 ? .1 : .32);
+    this.depthGain.gain.setTargetAtTime(depthLevel, audioNow, motion > .2 ? .14 : .72);
+    this.nearFilter.frequency.setTargetAtTime(nearCutoff, audioNow, .32);
+    this.depthFilter.frequency.setTargetAtTime(depthCutoff, audioNow, .65);
+    if (this.nearPan) {
+      this.nearPan.pan.setTargetAtTime(pan, audioNow, .24);
+      this.depthPan.pan.setTargetAtTime(-pan * .28, audioNow, .8);
     }
-
   }
 
   fadeOut(duration = 4) {
-    if (this.webAudio && this.context) {
+    if (this.mode === "buffer" && this.context) {
       const now = this.context.currentTime;
       this.master.gain.cancelScheduledValues(now);
       this.master.gain.setValueAtTime(Math.max(.0001, this.master.gain.value), now);
       this.master.gain.exponentialRampToValueAtTime(.0001, now + duration);
     }
-    this.stopTimer = window.setTimeout(() => {
-      this.track.pause();
-      this.playing = false;
-    }, duration * 1_000 + 120);
+    this.stopTimer = window.setTimeout(() => this.stop(), duration * 1_000 + 120);
   }
 
   pause() {
-    this.track.pause();
-    if (this.context?.state === "running") this.context.suspend();
+    if (this.mode === "direct") this.track.pause();
+    if (this.mode === "buffer" && this.context?.state === "running") this.context.suspend();
   }
 
-  resume() {
-    if (!this.playing || !running) return;
-    if (this.context?.state === "suspended") this.context.resume();
-    this.track.play().catch(() => { soundFallback.hidden = false; });
+  async resume() {
+    if (!this.playing || !running) return false;
+    try {
+      if (this.mode === "buffer" && this.context?.state === "suspended") {
+        await this.context.resume();
+      }
+      if (this.mode === "direct" && this.track.paused) {
+        await this.track.play();
+      }
+      soundFallback.hidden = true;
+      return true;
+    } catch (error) {
+      soundFallback.hidden = false;
+      return false;
+    }
   }
 
   get currentTime() {
+    if (this.mode === "buffer" && this.context) {
+      return Math.max(0, this.context.currentTime - this.startedAt);
+    }
     return this.track.currentTime || 0;
   }
 }
 
 const listeningAudio = new ListeningAudio(listeningTrack);
+listeningAudio.warm()?.catch(() => {});
 
 function resize() {
   ratio = Math.min(devicePixelRatio || 1, 2);
@@ -255,48 +391,61 @@ function registerInput(clientX, clientY, force = .12) {
 
   position = next;
   lastPoint = next;
-  if (distance < .0025 && force < .4) return;
+  if (distance < .0008 && force < .4) return;
   activityImpulse = Math.max(activityImpulse, clamp(force + distance * 9));
   quietSince = performance.now();
 }
 
 function updateListeningState(now) {
-  const quietFor = Math.max(0, now - quietSince);
-  const movementTarget = quietFor < 1_500
-    ? activityImpulse * (1 - quietFor / 1_500)
-    : 0;
-  const activityRate = movementTarget > activity ? .16 : .025;
-  activity += (movementTarget - activity) * activityRate;
-  activityImpulse *= .986;
+  const elapsed = lastStateUpdate ? Math.min(64, Math.max(1, now - lastStateUpdate)) : 16.7;
+  lastStateUpdate = now;
 
-  const stillTarget = smoothstep(3_800, 24_000, quietFor) * (1 - activity * .48);
-  const stillRate = stillTarget > stillness ? .018 : .08;
-  stillness += (stillTarget - stillness) * stillRate;
+  const quietFor = Math.max(0, now - quietSince);
+  const movementTarget = quietFor < 680
+    ? activityImpulse * (1 - quietFor / 680)
+    : 0;
+  activity = approach(
+    activity,
+    movementTarget,
+    movementTarget > activity ? .07 : .34,
+    elapsed
+  );
+  activityImpulse *= Math.pow(.92, elapsed / 16.7);
+
+  const motion = smoothstep(.06, .34, activity);
+  const stillTarget = smoothstep(1_600, 10_500, quietFor) * (1 - motion * .86);
+  stillness = approach(
+    stillness,
+    stillTarget,
+    stillTarget > stillness ? .42 : .1,
+    elapsed
+  );
   stillness = clamp(stillness);
 
   let nextStatus = "near";
-  if (stillness > .72) nextStatus = "deep";
-  else if (stillness > .28) nextStatus = "opening";
+  if (stillness > .7) nextStatus = "deep";
+  else if (stillness > .14) nextStatus = "opening";
   if (nextStatus !== statusState) {
     statusState = nextStatus;
     room.dataset.listening = nextStatus;
     listeningStatus.textContent = nextStatus === "deep"
       ? "Distant voices are present."
       : nextStatus === "opening"
-        ? "The room is opening."
+        ? "Distant voices are arriving."
         : "The room is near.";
   }
 }
 
 function drawField(time) {
   const movementTime = reducedMotion ? 0 : time;
-  const openness = .12 + stillness * .88;
-  const horizon = height * (.48 + (position.y - .5) * .1);
+  const motion = smoothstep(.06, .34, activity);
+  const openness = .06 + stillness * .94;
+  const horizon = height * (.48 + (position.y - .5) * .04);
 
   const background = fieldContext.createLinearGradient(0, 0, width, height);
-  background.addColorStop(0, `rgb(${8 + openness * 5} ${15 + openness * 7} ${21 + openness * 11})`);
-  background.addColorStop(.58, `rgb(${10 + openness * 8} ${18 + openness * 10} ${27 + openness * 14})`);
-  background.addColorStop(1, `rgb(${17 + activity * 6} ${17 + openness * 5} ${19 + openness * 6})`);
+  background.addColorStop(0, `rgb(${8 + openness * 7} ${14 + openness * 10} ${20 + openness * 16})`);
+  background.addColorStop(.58, `rgb(${9 + openness * 11} ${17 + openness * 14} ${25 + openness * 20})`);
+  background.addColorStop(1, `rgb(${14 + motion * 10} ${16 + openness * 7} ${18 + openness * 9})`);
   fieldContext.fillStyle = background;
   fieldContext.fillRect(0, 0, width, height);
 
@@ -311,13 +460,13 @@ function drawField(time) {
     horizon,
     Math.max(width, height) * (.22 + openness * .34)
   );
-  distantGlow.addColorStop(0, `rgba(132,163,178,${.025 + openness * .12})`);
-  distantGlow.addColorStop(.45, `rgba(119,139,155,${openness * .045})`);
+  distantGlow.addColorStop(0, `rgba(132,163,178,${.018 + openness * .22})`);
+  distantGlow.addColorStop(.45, `rgba(119,139,155,${openness * .085})`);
   distantGlow.addColorStop(1, "rgba(90,110,126,0)");
   fieldContext.fillStyle = distantGlow;
   fieldContext.fillRect(0, 0, width, height);
 
-  const spread = height * (.08 + openness * .48);
+  const spread = height * (.04 + openness * .54);
   for (let index = 0; index < 11; index++) {
     const depth = index / 10;
     const offset = (depth - .5) * spread;
@@ -336,12 +485,12 @@ function drawField(time) {
       width * 1.08,
       rightY
     );
-    fieldContext.strokeStyle = `rgba(${151 + index * 3},${169 + index * 2},${178 + index},${.018 + openness * (.018 + depth * .022)})`;
+    fieldContext.strokeStyle = `rgba(${151 + index * 3},${169 + index * 2},${178 + index},${.012 + openness * (.026 + depth * .036)})`;
     fieldContext.lineWidth = .55 + depth * .7;
     fieldContext.stroke();
   }
 
-  fieldContext.fillStyle = `rgba(211,220,220,${.018 + openness * .055})`;
+  fieldContext.fillStyle = `rgba(211,220,220,${.012 + openness * .09})`;
   for (const particle of particles) {
     const depthMotion = 3 + openness * 16;
     const x = particle.x * width
@@ -355,10 +504,10 @@ function drawField(time) {
 
   const nearX = position.x * width;
   const nearY = position.y * height;
-  const nearRadius = Math.min(width, height) * (.08 + activity * .16);
+  const nearRadius = Math.min(width, height) * (.06 + motion * .22);
   const nearGlow = fieldContext.createRadialGradient(nearX, nearY, 0, nearX, nearY, nearRadius);
-  nearGlow.addColorStop(0, `rgba(182,142,114,${.035 + activity * .15})`);
-  nearGlow.addColorStop(.34, `rgba(116,129,137,${.025 + activity * .07})`);
+  nearGlow.addColorStop(0, `rgba(182,142,114,${.025 + motion * .3})`);
+  nearGlow.addColorStop(.34, `rgba(116,129,137,${.018 + motion * .12})`);
   nearGlow.addColorStop(1, "rgba(10,16,22,0)");
   fieldContext.fillStyle = nearGlow;
   fieldContext.beginPath();
@@ -393,7 +542,21 @@ function animate(now) {
   animationFrame = requestAnimationFrame(animate);
 }
 
-async function begin() {
+async function begin(trigger) {
+  if (trigger.disabled) return;
+  trigger.disabled = true;
+  const label = trigger.textContent;
+  if (!listeningAudio.ready) trigger.textContent = "preparing the room";
+
+  const started = await listeningAudio.start();
+  if (!started) {
+    trigger.disabled = false;
+    trigger.textContent = "tap for sound";
+    return;
+  }
+
+  trigger.disabled = false;
+  trigger.textContent = label;
   cancelAnimationFrame(animationFrame);
   running = true;
   endingShown = false;
@@ -401,6 +564,7 @@ async function begin() {
   activityImpulse = 0;
   stillness = 0;
   quietSince = performance.now();
+  lastStateUpdate = quietSince;
   startTime = quietSince;
   statusState = "near";
   room.dataset.listening = "near";
@@ -413,18 +577,17 @@ async function begin() {
   drawField(startTime);
   animationFrame = requestAnimationFrame(animate);
   canvas.focus({ preventScroll: true });
-  await listeningAudio.start();
 }
 
-enter.addEventListener("click", begin);
-again.addEventListener("click", begin);
+enter.addEventListener("click", () => begin(enter));
+again.addEventListener("click", () => begin(again));
 
 canvas.addEventListener("pointerdown", event => {
-  registerInput(event.clientX, event.clientY, .72);
+  registerInput(event.clientX, event.clientY, .9);
 });
 
 canvas.addEventListener("pointermove", event => {
-  registerInput(event.clientX, event.clientY, .08);
+  registerInput(event.clientX, event.clientY, .34);
 });
 
 canvas.addEventListener("keydown", event => {
@@ -440,14 +603,14 @@ canvas.addEventListener("keydown", event => {
   registerInput(
     (position.x + movement[0]) * width,
     (position.y + movement[1]) * height,
-    .62
+    .85
   );
 });
 
 soundFallback.addEventListener("click", async event => {
   event.stopPropagation();
-  const started = await listeningAudio.start();
-  soundFallback.hidden = started;
+  const resumed = await listeningAudio.resume();
+  soundFallback.hidden = resumed;
 });
 
 listeningTrack.addEventListener("ended", finish);
