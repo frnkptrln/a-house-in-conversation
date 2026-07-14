@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Render the two fixed stems for The Listening Room.
+"""Render the fixed stems and interlaced delivery file for The Listening Room.
 
 The browser does not synthesize or download anything at runtime beyond these
-two synchronized files. Movement foregrounds the near stem; stillness reveals
-the depth stem. Both are complete compositions built from the house's
-E–B–F-sharp–A seed and deterministic physical/noise models.
+fixed files. Movement foregrounds the near stem; stillness reveals the depth
+stem. Both are complete compositions built from the house's E–B–F-sharp–A seed
+and deterministic physical/noise models. The delivery render puts a reversible
+blend of both stems into one stereo file for reliable mobile playback.
 """
 
 from __future__ import annotations
@@ -345,12 +346,20 @@ class ListeningScore:
             mix *= peak_target / peak
         return np.transpose(mix)
 
-    def render(self) -> tuple[np.ndarray, np.ndarray]:
+    def render(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         self.near_form()
         self.depth_form()
         near = self.finish_stem(self.space(self.near, False), .46)
         depth = self.finish_stem(self.space(self.depth, True), .39)
-        return near, depth
+        near_mono = np.mean(near, axis=1)
+        depth_mono = np.mean(depth, axis=1)
+        interlaced = np.column_stack(
+            (
+                near_mono * .75 + depth_mono * .25,
+                near_mono * .25 + depth_mono * .75,
+            )
+        ).astype(np.float32) * 1.6
+        return near, depth, interlaced
 
 
 def main() -> None:
@@ -359,7 +368,7 @@ def main() -> None:
     args = parser.parse_args()
     args.output_directory.mkdir(parents=True, exist_ok=True)
 
-    near, depth = ListeningScore().render()
+    near, depth, interlaced = ListeningScore().render()
     wavfile.write(
         args.output_directory / "near.wav",
         RATE,
@@ -369,6 +378,11 @@ def main() -> None:
         args.output_directory / "depth.wav",
         RATE,
         np.int16(np.clip(depth, -1, 1) * 32767),
+    )
+    wavfile.write(
+        args.output_directory / "listening.wav",
+        RATE,
+        np.int16(np.clip(interlaced, -1, 1) * 32767),
     )
 
 
