@@ -84,7 +84,6 @@ class ListeningAudio {
     this.playing = false;
     this.startedAt = 0;
     this.lastUpdate = 0;
-    this.lastSync = 0;
     this.stopTimer = 0;
     this.generation = 0;
     this.fallbackRequired = false;
@@ -255,7 +254,6 @@ class ListeningAudio {
     this.track.volume = 1;
     this.track.muted = false;
     this.lastUpdate = 0;
-    this.lastSync = 0;
 
     if (this.forceDirect || this.fallbackRequired) return this.startDirect();
     if (this.preferMedia) return this.startMedia();
@@ -392,18 +390,6 @@ class ListeningAudio {
     if (this.mode === "media") {
       this.nearTrack.volume = clamp(nearLevel, .08, .9);
       this.depthTrack.volume = clamp(depthLevel, .004, .9);
-
-      if (now - this.lastSync > 1_250) {
-        this.lastSync = now;
-        const drift = this.depthTrack.currentTime - this.nearTrack.currentTime;
-        if (Math.abs(drift) > .085) {
-          try {
-            this.depthTrack.currentTime = this.nearTrack.currentTime;
-          } catch (error) {
-            // A temporary streaming seek failure corrects on the next interval.
-          }
-        }
-      }
       return;
     }
 
@@ -725,4 +711,3 @@ document.addEventListener("visibilitychange", () => {
 });
 
 resize();
-
