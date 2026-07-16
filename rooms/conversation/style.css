@@ -372,7 +372,7 @@ h1,
 
 @media (max-width: 650px) {
   .threshold, .after { padding: 1.5rem; }
-  .house-nav { gap: .39rem; padding-inline: .55rem; font-size: clamp(.51rem, 2.15vw, .62rem); letter-spacing: .035em; }
+  .house-nav { gap: .48rem; padding-inline: .65rem; }
   .architecture { width: 96vw; bottom: 13vh; }
   .coordinates { inset: .9rem; }
   .primary, .echo { width: 88vw; }

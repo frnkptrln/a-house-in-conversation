@@ -263,7 +263,7 @@ body[data-room-state="ending"] .house-nav a { color: rgba(223, 231, 234, .43); }
 
   h1 { font-size: clamp(3.6rem, 17vw, 6rem); }
   .ending p { font-size: clamp(3rem, 14vw, 5.2rem); }
-  .house-nav { gap: .39rem; padding-inline: .55rem; font-size: clamp(.51rem, 2.15vw, .62rem); letter-spacing: .035em; }
+  .house-nav { gap: .43rem; padding-inline: .6rem; letter-spacing: .045em; }
 }
 
 @media (max-height: 520px) and (orientation: landscape) {

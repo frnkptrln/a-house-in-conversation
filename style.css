@@ -194,32 +194,32 @@ h1 {
 }
 
 .room-conversation {
-  left: 13%;
+  left: 18%;
   top: 58%;
 }
 
 .room-colour {
-  left: 32%;
-  top: 36%;
+  left: 41%;
+  top: 39%;
   width: clamp(8.5rem, 17.5vw, 17rem);
 }
 
 .room-garden {
-  left: 51%;
+  left: 64%;
   top: 62%;
   width: clamp(8rem, 16.5vw, 16rem);
 }
 
 .room-listening {
-  left: 70%;
-  top: 38%;
+  left: 84%;
+  top: 40%;
   width: clamp(7.5rem, 15.5vw, 15rem);
 }
 
 .room-window {
-  left: 88%;
-  top: 61%;
-  width: clamp(7rem, 14.5vw, 14rem);
+  left: 82%;
+  top: 84%;
+  width: clamp(5.2rem, 10.5vw, 9rem);
 }
 
 .aperture {
@@ -381,8 +381,11 @@ h1 {
   animation: remain 13s ease-in-out infinite alternate;
 }
 
-.unformed i:nth-child(1) { left: 42%; top: 16%; animation-delay: -4s; }
-.unformed i:nth-child(2) { left: 75%; bottom: 12%; animation-delay: -9s; }
+.unformed i:nth-child(1) { left: 13%; top: 20%; animation-delay: -4s; }
+.unformed i:nth-child(2) { left: 51%; top: 18%; animation-delay: -9s; }
+.unformed i:nth-child(3) { right: 10%; top: 25%; animation-delay: -2s; }
+.unformed i:nth-child(4) { left: 47%; bottom: 12%; animation-delay: -7s; }
+.unformed i:nth-child(5) { right: 18%; bottom: 16%; animation-delay: -11s; }
 
 @keyframes remain {
   from { opacity: .1; transform: translate(-7px, 5px) scale(.65); }
@@ -444,32 +447,32 @@ h1 {
   }
 
   .room-conversation {
-    left: 27%;
-    top: 25%;
+    left: 28%;
+    top: 31%;
   }
 
   .room-colour {
-    left: 73%;
-    top: 27%;
+    left: 72%;
+    top: 33%;
     width: min(40vw, 12rem);
   }
 
   .room-garden {
-    left: 27%;
-    top: 55%;
+    left: 28%;
+    top: 72%;
     width: min(39vw, 11.5rem);
   }
 
   .room-listening {
-    left: 73%;
-    top: 56%;
+    left: 72%;
+    top: 70%;
     width: min(37vw, 11rem);
   }
 
   .room-window {
     left: 50%;
-    top: 84%;
-    width: min(35vw, 10.5rem);
+    top: 91%;
+    width: min(23vw, 7rem);
   }
 
   .room-name {
@@ -488,11 +491,11 @@ h1 {
 
 @media (max-height: 520px) and (orientation: landscape) {
   .room { width: min(21vw, 9rem); }
-  .room-conversation { left: 10%; top: 55%; }
-  .room-colour { left: 30%; top: 43%; }
-  .room-garden { left: 50%; top: 57%; }
-  .room-listening { left: 70%; top: 44%; }
-  .room-window { left: 90%; top: 56%; }
+  .room-conversation { left: 14%; top: 55%; }
+  .room-colour { left: 38%; top: 43%; }
+  .room-garden { left: 63%; top: 57%; }
+  .room-listening { left: 86%; top: 44%; }
+  .room-window { left: 50%; top: 87%; width: min(12vw, 6.5rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
