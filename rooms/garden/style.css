@@ -241,7 +241,7 @@ body[data-room-state="ending"] .house-nav [aria-current="page"] { color: rgba(25
 
   h1 { font-size: clamp(4rem, 19vw, 6.4rem); }
   .ending p { font-size: clamp(2.7rem, 13.5vw, 5rem); }
-  .house-nav { gap: .5rem; padding-inline: .65rem; }
+  .house-nav { gap: .39rem; padding-inline: .55rem; font-size: clamp(.51rem, 2.15vw, .62rem); letter-spacing: .035em; }
 }
 
 @media (prefers-reduced-motion: reduce) {

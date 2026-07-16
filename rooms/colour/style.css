@@ -183,7 +183,7 @@ h1,
 @media (max-width: 620px) {
   .threshold, .ending { padding: 1.4rem; }
   h1, .ending p { font-size: clamp(3rem, 18vw, 6rem); }
-  .house-nav { gap: .48rem; padding-inline: .65rem; }
+  .house-nav { gap: .39rem; padding-inline: .55rem; font-size: clamp(.51rem, 2.15vw, .62rem); letter-spacing: .035em; }
 }
 
 @media (prefers-reduced-motion: reduce) {

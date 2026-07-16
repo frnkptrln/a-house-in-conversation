@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#091421">
+  <meta name="description" content="The Window — a quiet room for distance and reflection inside A House in Conversation.">
+  <title>The Window — A House in Conversation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-room-state="threshold">
+  <nav class="house-nav" aria-label="House navigation">
+    <a href="../../#rooms">house</a>
+    <a href="../conversation/">conversation</a>
+    <a href="../colour/">colour</a>
+    <a href="../garden/">garden</a>
+    <a href="../listening/">listening</a>
+    <span aria-current="page">window</span>
+  </nav>
+
+  <main id="room" data-state="threshold" data-view="between">
+    <section class="threshold" aria-labelledby="window-title">
+      <h1 id="window-title">the window</h1>
+      <button id="enter" type="button">look out</button>
+    </section>
+
+    <section class="performance" aria-label="A quiet view through glass">
+      <canvas
+        id="window-field"
+        tabindex="0"
+        aria-label="A view through glass. Pointer, touch, or arrow keys shift the perspective; stillness lets the distance become clear."
+      ></canvas>
+      <p id="window-status" class="visually-hidden" aria-live="polite">The glass holds both sides.</p>
+    </section>
+
+    <section class="ending" aria-label="Room ending">
+      <p>distance entered<br>the room</p>
+      <button id="again" type="button">again</button>
+      <a class="return" href="../../#rooms">return to the rooms</a>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

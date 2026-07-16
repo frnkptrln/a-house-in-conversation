@@ -30,9 +30,15 @@ A 216-second spatial composition. Movement changes the listening position and fo
 
 Path: `/rooms/listening/`
 
+### The Window
+
+A silent, 168-second view through glass. Pointer, touch, and arrow keys make small changes of perspective; movement strengthens the reflection while stillness lets the distant landscape and its lights become clear.
+
+Path: `/rooms/window/`
+
 ## The threshold
 
-The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. Open rooms appear as atmospheres. Unformed traces leave space for the Machine Room, Window, and Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
+The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. Open rooms appear as atmospheres. Unformed traces leave space for the Machine Room and Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
 
 Completed rooms leave a subtle trace at the threshold using local browser storage. Nothing is transmitted, measured, or optimized.
 
@@ -52,7 +58,7 @@ The repository is a static work designed for GitHub Pages. Publish from the root
 
 ## Status
 
-Version 1.0 — four finished rooms and a threshold with its own visual and musical language.
+Version 1.1 — five finished rooms and a threshold with its own visual and musical language.
 
 ## Credit
 

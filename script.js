@@ -19,9 +19,8 @@ let pulse = 0;
 let pointer = { x: width / 2, y: height / 2, visible: false };
 
 const unformed = [
-  { x: .13, y: .20, phase: .7 },
-  { x: .51, y: .18, phase: 2.2 },
-  { x: .82, y: .84, phase: 5.3 }
+  { x: .42, y: .16, phase: .7 },
+  { x: .75, y: .86, phase: 2.2 }
 ];
 
 const motes = Array.from({ length: 46 }, (_, index) => ({
@@ -84,6 +83,7 @@ function draw(time) {
   const colour = roomCentre(document.querySelector(".room-colour"));
   const garden = roomCentre(document.querySelector(".room-garden"));
   const listening = roomCentre(document.querySelector(".room-listening"));
+  const windowRoom = roomCentre(document.querySelector(".room-window"));
   const energy = entered ? 1 : .34;
   pulse *= .965;
 
@@ -140,10 +140,24 @@ function draw(time) {
     "201,213,215",
     energy * .38 + (visits.listening ? .15 : 0)
   );
+  paintField(
+    windowRoom.x + Math.sin(movementTime * .000035) * 8,
+    windowRoom.y + Math.cos(movementTime * .000042) * 7,
+    windowRoom.radius * 1.58,
+    "116,151,176",
+    energy * .54 + (visits.window ? .2 : 0)
+  );
+  paintField(
+    windowRoom.x - Math.cos(movementTime * .00003) * 6,
+    windowRoom.y - Math.sin(movementTime * .000038) * 7,
+    windowRoom.radius * 1.3,
+    "209,178,156",
+    energy * .32 + (visits.window ? .14 : 0)
+  );
 
   paintField(
-    (conversation.x + colour.x + garden.x + listening.x) / 4,
-    (conversation.y + colour.y + garden.y + listening.y) / 4,
+    (conversation.x + colour.x + garden.x + listening.x + windowRoom.x) / 5,
+    (conversation.y + colour.y + garden.y + listening.y + windowRoom.y) / 5,
     Math.min(width, height) * (.08 + pulse * .035),
     "112,225,209",
     (.08 + pulse * .09) * energy
@@ -370,6 +384,8 @@ class ThresholdAudio {
         ? 760
         : roomName === "listening"
           ? 1_080
+          : roomName === "window"
+            ? 1_260
           : 480;
     this.filter.frequency.cancelScheduledValues(now);
     this.filter.frequency.setValueAtTime(this.filter.frequency.value, now);
