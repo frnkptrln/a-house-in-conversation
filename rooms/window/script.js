@@ -69,20 +69,38 @@ function randomFrom(seed) {
 
 const random = randomFrom(0x57494e44);
 
-const stars = Array.from({ length: 112 }, (_, index) => ({
+const stars = Array.from({ length: 148 }, (_, index) => ({
   x: random(),
-  y: .035 + random() * .54,
+  y: .025 + random() * .68,
   radius: index % 23 === 0 ? 1.45 : index % 7 === 0 ? .92 : .52,
   phase: random() * Math.PI * 2
 }));
 
-const lights = Array.from({ length: 27 }, (_, index) => ({
-  x: .045 + random() * .91,
-  y: random(),
-  radius: index % 8 === 0 ? 1.35 : .72,
+const lights = Array.from({ length: 9 }, (_, index) => ({
+  x: .06 + random() * .88,
+  offset: .008 + random() * .021,
+  radius: index % 5 === 0 ? 1.16 : .68,
   warmth: random(),
   phase: random() * Math.PI * 2
-}));
+})).sort((a, b) => a.x - b.x);
+
+const ridgePoints = [
+  [-.12, .805],
+  [-.02, .792],
+  [.08, .774],
+  [.17, .786],
+  [.27, .754],
+  [.36, .739],
+  [.45, .758],
+  [.55, .721],
+  [.64, .733],
+  [.73, .692],
+  [.81, .666],
+  [.89, .681],
+  [.97, .651],
+  [1.08, .676],
+  [1.14, .69]
+];
 
 const dust = Array.from({ length: 34 }, () => ({
   x: random(),
@@ -121,14 +139,14 @@ function drawSky(time) {
   const low = mixColour([49, 55, 57], [29, 38, 44], clarity);
   const gradient = context.createLinearGradient(0, -vertical * 10, 0, height);
   gradient.addColorStop(0, rgba(top));
-  gradient.addColorStop(.5, rgba(middle));
-  gradient.addColorStop(.72, rgba(horizon));
+  gradient.addColorStop(.56, rgba(middle));
+  gradient.addColorStop(.8, rgba(horizon));
   gradient.addColorStop(1, rgba(low));
   context.fillStyle = gradient;
   context.fillRect(0, 0, width, height);
 
   const glowX = width * (.7 - horizontal * .07);
-  const glowY = height * (.69 - vertical * .025);
+  const glowY = height * (.77 - vertical * .025);
   const glow = context.createRadialGradient(glowX, glowY, 0, glowX, glowY, Math.max(width, height) * .42);
   glow.addColorStop(0, `rgba(237,177,137,${.09 + clarity * .14})`);
   glow.addColorStop(.45, `rgba(198,130,111,${.03 + clarity * .045})`);
@@ -155,20 +173,6 @@ function drawSky(time) {
   context.restore();
 }
 
-function terrainPath(baseY, amplitude, wavelength, offset, phase, detail = .26) {
-  context.beginPath();
-  context.moveTo(-100, height + 20);
-  for (let x = -100; x <= width + 100; x += 15) {
-    const shifted = x + offset;
-    const y = baseY
-      + Math.sin(shifted / wavelength + phase) * amplitude
-      + Math.sin(shifted / (wavelength * .43) + phase * 1.71) * amplitude * detail;
-    context.lineTo(x, y);
-  }
-  context.lineTo(width + 100, height + 20);
-  context.closePath();
-}
-
 function drawCloud(time, x, y, cloudWidth, cloudHeight, alpha) {
   context.save();
   context.translate(x, y);
@@ -184,6 +188,49 @@ function drawCloud(time, x, y, cloudWidth, cloudHeight, alpha) {
   context.restore();
 }
 
+function ridgeHeightAt(x) {
+  for (let index = 1; index < ridgePoints.length; index++) {
+    const previous = ridgePoints[index - 1];
+    const current = ridgePoints[index];
+    if (x <= current[0]) {
+      const amount = clamp((x - previous[0]) / (current[0] - previous[0]));
+      return mix(previous[1], current[1], amount);
+    }
+  }
+  return ridgePoints[ridgePoints.length - 1][1];
+}
+
+function ridgeScreenPoints(horizontal, vertical) {
+  const shift = horizontal * Math.min(72, width * .12);
+  const lift = vertical * height * .032;
+  return ridgePoints.map(point => ({
+    x: point[0] * width - shift,
+    y: point[1] * height + lift
+  }));
+}
+
+function traceRidge(points, close = false) {
+  context.beginPath();
+  context.moveTo(points[0].x, points[0].y);
+  for (let index = 1; index < points.length - 1; index++) {
+    const current = points[index];
+    const next = points[index + 1];
+    context.quadraticCurveTo(
+      current.x,
+      current.y,
+      (current.x + next.x) * .5,
+      (current.y + next.y) * .5
+    );
+  }
+  const last = points[points.length - 1];
+  context.lineTo(last.x, last.y);
+  if (close) {
+    context.lineTo(width + 120, height + 20);
+    context.lineTo(-120, height + 20);
+    context.closePath();
+  }
+}
+
 function drawDistance(time) {
   const horizontal = view.x - .5;
   const vertical = view.y - .5;
@@ -191,50 +238,37 @@ function drawDistance(time) {
 
   drawCloud(
     time,
-    width * .23 - horizontal * 22 + drift,
-    height * .25 - vertical * 18,
-    width * .21,
-    Math.max(13, height * .022),
-    .018 + clarity * .04
-  );
-  drawCloud(
-    time,
-    width * .73 - horizontal * 25 - drift * .7,
-    height * .37 - vertical * 20,
-    width * .27,
-    Math.max(15, height * .027),
-    .015 + clarity * .032
+    width * .62 - horizontal * 21 + drift,
+    height * .33 - vertical * 17,
+    width * .31,
+    Math.max(14, height * .021),
+    .012 + clarity * .027
   );
 
-  terrainPath(
-    height * .67 + vertical * height * .018,
-    height * .038,
-    Math.max(170, width * .21),
-    horizontal * 20,
-    .74
-  );
-  context.fillStyle = rgba(mixColour([78, 91, 98], [47, 65, 80], clarity), .69 + clarity * .17);
+  const points = ridgeScreenPoints(horizontal, vertical);
+  traceRidge(points, true);
+  const ridge = context.createLinearGradient(0, height * .64, 0, height);
+  ridge.addColorStop(0, rgba(mixColour([28, 39, 43], [8, 25, 33], clarity), .96));
+  ridge.addColorStop(1, "rgba(2,8,12,1)");
+  context.fillStyle = ridge;
   context.fill();
 
-  terrainPath(
-    height * .745 + vertical * height * .036,
-    height * .057,
-    Math.max(125, width * .15),
-    horizontal * 43,
-    2.18
-  );
-  context.fillStyle = rgba(mixColour([48, 60, 64], [25, 42, 53], clarity), .86 + clarity * .12);
-  context.fill();
+  traceRidge(points);
+  context.strokeStyle = `rgba(188,164,146,${.035 + clarity * .07})`;
+  context.lineWidth = .65;
+  context.stroke();
 
   const lightAlpha = .18 + clarity * .82;
+  const ridgeShift = horizontal * Math.min(72, width * .12);
+  const ridgeLift = vertical * height * .032;
   context.save();
   context.globalCompositeOperation = "screen";
   for (const light of lights) {
-    const x = light.x * width - horizontal * 48;
-    const y = height * (.704 + light.y * .083) + vertical * height * .035;
+    const x = light.x * width - ridgeShift;
+    const y = height * (ridgeHeightAt(light.x) + light.offset) + ridgeLift;
     const flicker = reducedMotion ? .8 : .72 + Math.sin(time * .00054 + light.phase) * .15;
     const alpha = lightAlpha * flicker;
-    const haloRadius = light.radius * mix(12, 6.5, clarity);
+    const haloRadius = light.radius * mix(9, 5.2, clarity);
     const halo = context.createRadialGradient(x, y, 0, x, y, haloRadius);
     halo.addColorStop(0, `rgba(250,209,146,${alpha * .8})`);
     halo.addColorStop(.18, `rgba(241,179,111,${alpha * (.12 + clarity * .22)})`);
@@ -244,65 +278,6 @@ function drawDistance(time) {
     context.arc(x, y, haloRadius, 0, Math.PI * 2);
     context.fill();
   }
-  context.restore();
-
-  terrainPath(
-    height * .84 + vertical * height * .06,
-    height * .045,
-    Math.max(88, width * .105),
-    horizontal * 78,
-    4.42,
-    .34
-  );
-  context.fillStyle = rgba(mixColour([28, 36, 38], [11, 24, 31], clarity), .97);
-  context.fill();
-
-  drawNearBranches(time, horizontal, vertical);
-}
-
-function drawNearBranches(time, horizontal, vertical) {
-  const sway = reducedMotion ? 0 : Math.sin(time * .00016) * 2.2;
-  const shift = horizontal * Math.min(110, width * .2);
-  const lift = vertical * Math.min(62, height * .11);
-  const alpha = .34 + clarity * .36;
-  context.save();
-  context.lineCap = "round";
-  context.strokeStyle = `rgba(6,17,21,${alpha})`;
-  context.lineWidth = Math.max(2.2, Math.min(width, height) * .0042);
-
-  context.beginPath();
-  context.moveTo(-25 - shift, height * .82 + lift);
-  context.bezierCurveTo(
-    width * .06 - shift,
-    height * .75 + sway + lift,
-    width * .1 - shift,
-    height * .63 + lift,
-    width * .18 - shift,
-    height * .57 + sway + lift
-  );
-  context.stroke();
-
-  context.lineWidth *= .54;
-  context.beginPath();
-  context.moveTo(width * .075 - shift, height * .72 + lift);
-  context.quadraticCurveTo(width * .13 - shift, height * .68 + lift, width * .17 - shift, height * .64 + sway + lift);
-  context.moveTo(width * .11 - shift, height * .66 + lift);
-  context.quadraticCurveTo(width * .09 - shift, height * .58 + lift, width * .13 - shift, height * .51 + lift);
-  context.stroke();
-
-  context.strokeStyle = `rgba(5,14,18,${alpha * .9})`;
-  context.lineWidth = Math.max(1.6, Math.min(width, height) * .0032);
-  context.beginPath();
-  context.moveTo(width + 20 - shift * .62, height * .89 + lift * .6);
-  context.bezierCurveTo(
-    width * .95 - shift * .62,
-    height * .78 - sway + lift * .6,
-    width * .91 - shift * .62,
-    height * .73 + lift * .6,
-    width * .86 - shift * .62,
-    height * .65 - sway + lift * .6
-  );
-  context.stroke();
   context.restore();
 }
 
