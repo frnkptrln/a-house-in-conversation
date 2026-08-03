@@ -17,6 +17,7 @@ let ratio = 1;
 let frame = 0;
 let audio = null;
 let master = null;
+let audible = null;
 let analyser = null;
 let frequencyData = null;
 let startTime = 0;
@@ -239,7 +240,7 @@ function createNoiseLoop(destination, amplitude, lowpass, highpass = 25) {
 }
 
 function speakLine() {
-  if (!("speechSynthesis" in window)) return;
+  if (muted || document.hidden || !("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance("Manche Räume verändern nicht sich. Sie verändern uns.");
   utterance.lang = "de-DE";
@@ -285,6 +286,7 @@ async function buildPerformance() {
   const reverb = audio.createConvolver();
   const wet = audio.createGain();
   const output = audio.createGain();
+  audible = audio.createGain();
 
   analyser.fftSize = 512;
   analyser.smoothingTimeConstant = .88;
@@ -294,10 +296,11 @@ async function buildPerformance() {
   dry.gain.value = .82;
   wet.gain.value = .24;
   output.gain.value = .86;
+  audible.gain.value = 1;
 
   master.connect(dry).connect(output);
   master.connect(reverb).connect(wet).connect(output);
-  output.connect(analyser).connect(audio.destination);
+  output.connect(audible).connect(analyser).connect(audio.destination);
 
   startTime = audio.currentTime + .08;
   master.gain.setValueAtTime(.0001, startTime);
@@ -377,12 +380,13 @@ enter.addEventListener("click", startPerformance);
 soundFallback.addEventListener("click", startPerformance);
 
 sound.addEventListener("click", () => {
-  if (!audio || !master) return;
+  if (!audio || !audible) return;
   muted = !muted;
   const now = audio.currentTime;
-  master.gain.cancelScheduledValues(now);
-  master.gain.setValueAtTime(Math.max(.0001, master.gain.value), now);
-  master.gain.exponentialRampToValueAtTime(muted ? .0001 : .62, now + .7);
+  audible.gain.cancelScheduledValues(now);
+  audible.gain.setValueAtTime(Math.max(.0001, audible.gain.value), now);
+  audible.gain.exponentialRampToValueAtTime(muted ? .0001 : 1, now + .7);
+  if (muted && "speechSynthesis" in window) speechSynthesis.cancel();
   sound.textContent = muted ? "sound" : "silence";
   sound.setAttribute("aria-pressed", String(muted));
   status.textContent = muted ? "The room continues in silence." : "The room is sounding.";
@@ -398,11 +402,12 @@ addEventListener("pointermove", event => {
 addEventListener("resize", resize, { passive: true });
 
 document.addEventListener("visibilitychange", () => {
-  if (!audio || !master) return;
+  if (!audio || !audible) return;
   if (document.hidden) {
-    master.gain.setTargetAtTime(.0001, audio.currentTime, .22);
+    audible.gain.setTargetAtTime(.0001, audio.currentTime, .22);
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
   } else if (!muted && running) {
-    master.gain.setTargetAtTime(.62, audio.currentTime, .5);
+    audible.gain.setTargetAtTime(1, audio.currentTime, .5);
   }
 });
 
