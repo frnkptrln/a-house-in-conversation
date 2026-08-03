@@ -30,6 +30,12 @@ A 216-second spatial composition. Movement changes the listening position and fo
 
 Path: `/rooms/listening/`
 
+### The Afterimage
+
+A 92-second browser-native sound room built from filtered air, low harmonic planes, an unstable pulse, short glitches, and one German sentence. The room asks for no interaction beyond time; its field opens around the spoken trace and then fades into several seconds of visual and acoustic absence.
+
+Path: `/rooms/afterimage/`
+
 ## The threshold
 
 The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. Open rooms appear as atmospheres. Unformed traces leave space for the Machine Room, Window, and Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
@@ -52,7 +58,7 @@ The repository is a static work designed for GitHub Pages. Publish from the root
 
 ## Status
 
-Version 1.0 — four finished rooms and a threshold with its own visual and musical language.
+Version 1.1 — five finished rooms and a threshold with its own visual and musical language.
 
 ## Credit
 
