@@ -1,0 +1,52 @@
+/* Fifth-room threshold composition. Loaded after the original house styles. */
+.room-conversation { left: 13%; top: 58%; }
+.room-colour { left: 32%; top: 35%; }
+.room-afterimage { left: 51%; top: 63%; width: clamp(7.8rem, 16vw, 15.5rem); }
+.room-garden { left: 69%; top: 35%; }
+.room-listening { left: 87%; top: 58%; }
+
+.room-afterimage .aperture {
+  animation-delay: -10s;
+  background:
+    radial-gradient(ellipse at 50% 46%, rgba(232, 228, 220, .12), transparent 16%),
+    radial-gradient(ellipse at 42% 61%, rgba(180, 155, 130, .18), transparent 43%),
+    radial-gradient(ellipse at 62% 37%, rgba(142, 168, 183, .2), transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(4, 6, 10, .68), transparent 68%);
+  box-shadow:
+    -16px 8px 110px rgba(180, 155, 130, .065),
+    19px -10px 120px rgba(142, 168, 183, .075);
+}
+
+.room-afterimage .aperture::before {
+  border-color: rgba(232, 228, 220, .12);
+  box-shadow:
+    0 0 55px rgba(142, 168, 183, .06),
+    inset 0 0 42px rgba(180, 155, 130, .035);
+}
+
+.room-afterimage .aperture::after { background: #b49b82; }
+
+@media (max-width: 650px) {
+  .house-nav {
+    gap: .38rem;
+    padding-inline: .58rem;
+    font-size: .54rem;
+    letter-spacing: .045em;
+  }
+
+  .room { width: min(34vw, 10.5rem); }
+  .room-conversation { left: 24%; top: 28%; }
+  .room-colour { left: 76%; top: 28%; width: min(36vw, 11rem); }
+  .room-afterimage { left: 50%; top: 52%; width: min(35vw, 10.8rem); }
+  .room-garden { left: 24%; top: 76%; width: min(35vw, 10.8rem); }
+  .room-listening { left: 76%; top: 76%; width: min(34vw, 10.5rem); }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .room { width: min(18vw, 8rem); }
+  .room-conversation { left: 10%; top: 56%; }
+  .room-colour { left: 30%; top: 42%; }
+  .room-afterimage { left: 50%; top: 60%; }
+  .room-garden { left: 70%; top: 42%; }
+  .room-listening { left: 90%; top: 56%; }
+}
