@@ -7,6 +7,7 @@
   <meta name="description" content="A house of distinct audiovisual rooms, entered through conversation.">
   <title>A House in Conversation</title>
   <link rel="stylesheet" href="style.css?v=1.0.1">
+  <link rel="stylesheet" href="threshold-v1.1.css?v=1.1.0">
 </head>
 <body>
   <main id="threshold" data-state="arrival">
@@ -25,6 +26,7 @@
         <a href="rooms/colour/">colour</a>
         <a href="rooms/garden/">garden</a>
         <a href="rooms/listening/">listening</a>
+        <a href="rooms/afterimage/">afterimage</a>
       </nav>
 
       <nav class="rooms" aria-label="Rooms in the house">
@@ -36,6 +38,11 @@
         <a class="room room-colour" data-room="colour" href="rooms/colour/">
           <span class="aperture" aria-hidden="true"></span>
           <span class="room-name">the colour room</span>
+        </a>
+
+        <a class="room room-afterimage" data-room="afterimage" href="rooms/afterimage/">
+          <span class="aperture" aria-hidden="true"></span>
+          <span class="room-name">the afterimage</span>
         </a>
 
         <a class="room room-garden" data-room="garden" href="rooms/garden/">
@@ -54,7 +61,7 @@
       </div>
 
       <button id="sound" class="sound" type="button" aria-pressed="false">silence</button>
-      <p id="house-status" class="visually-hidden" aria-live="polite">Four rooms are open.</p>
+      <p id="house-status" class="visually-hidden" aria-live="polite">Five rooms are open.</p>
     </section>
   </main>
 
@@ -64,10 +71,10 @@
       <a href="rooms/colour/">The Colour Room</a>
       <a href="rooms/garden/">The Garden</a>
       <a href="rooms/listening/">The Listening Room</a>
+      <a href="rooms/afterimage/">The Afterimage</a>
     </nav>
   </noscript>
   <audio id="threshold-track" src="audio/threshold.m4a" preload="metadata" playsinline loop></audio>
   <script src="script.js?v=1.0.1"></script>
 </body>
 </html>
-
