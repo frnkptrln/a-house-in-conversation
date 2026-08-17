@@ -60,6 +60,8 @@ The entrance is a small generative sound and prismatic light field rather than a
 
 Completed rooms leave a subtle trace at the threshold using local browser storage. Nothing is transmitted, measured, or optimized.
 
+Once every room has left a trace, the threshold offers the gesture it withheld until then: the house can be left. The apertures withdraw one after another, the seed is said once all the way through, and the visitor can stay or let the traces go — which clears this browser's memory of the house and returns the entrance to a stranger. The seed left in the Machine Room is not a trace of the visitor and remains.
+
 ## Run locally
 
 Open `index.html` directly, or serve the repository root:

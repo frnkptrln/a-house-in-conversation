@@ -80,7 +80,17 @@
       </div>
 
       <button id="sound" class="sound" type="button" aria-pressed="false">silence</button>
+      <button id="leave" class="leave" type="button" hidden>leave the house</button>
       <p id="house-status" class="visually-hidden" aria-live="polite">Eight rooms are open.</p>
+    </section>
+
+    <section id="closing" class="closing" aria-label="Leaving the house">
+      <p class="closing-line">every room has been entered.<br>the house is not the same shape it was.</p>
+      <div class="closing-actions">
+        <button id="stay" type="button">stay</button>
+        <button id="release" type="button">let the traces go</button>
+      </div>
+      <p id="closing-note" class="closing-note">letting them go clears this browser's memory of the house: which rooms you entered, and everything the archive still held. The seed you left in the machine room stays.</p>
     </section>
   </main>
 

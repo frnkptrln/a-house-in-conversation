@@ -5,6 +5,9 @@ const canvas = document.querySelector("#threshold-field");
 const context = canvas.getContext("2d");
 const enter = document.querySelector("#enter");
 const soundControl = document.querySelector("#sound");
+const leaveControl = document.querySelector("#leave");
+const stayControl = document.querySelector("#stay");
+const releaseControl = document.querySelector("#release");
 const thresholdTrack = document.querySelector("#threshold-track");
 const houseStatus = document.querySelector("#house-status");
 const rooms = [...document.querySelectorAll(".room")];
@@ -15,6 +18,8 @@ let height = innerHeight;
 let ratio = 1;
 let animationFrame = 0;
 let entered = false;
+let closing = false;
+let withdraw = 1;
 let pulse = 0;
 let pointer = { x: width / 2, y: height / 2, visible: false };
 
@@ -136,6 +141,14 @@ if (visitedCount > 1) houseStatus.textContent = `${visitedCount} rooms have left
 const seedAltered = readSeed().some((degree, index) => degree !== SEED_DEFAULT[index]);
 if (seedAltered) houseStatus.textContent += " The seed has been altered.";
 
+// A house that can only be entered is not a house. Once every room has left a
+// trace, the threshold has another gesture to offer.
+const houseComplete = visitedCount === rooms.length;
+if (houseComplete) {
+  leaveControl.hidden = false;
+  houseStatus.textContent += " Every room has been entered; the house can be left.";
+}
+
 function resize() {
   ratio = Math.min(devicePixelRatio || 1, 2);
   width = innerWidth;
@@ -168,7 +181,8 @@ function paintField(x, y, radius, colour, strength) {
 
 function draw(time) {
   const movementTime = reducedMotion ? 0 : time;
-  const energy = entered ? 1 : .34;
+  withdraw += ((closing ? 0 : 1) - withdraw) * (reducedMotion ? 1 : .009);
+  const energy = (entered ? 1 : .34) * withdraw;
   let houseX = 0;
   let houseY = 0;
   let counted = 0;
@@ -225,7 +239,7 @@ function draw(time) {
   }
 
   if (pointer.visible) {
-    paintField(pointer.x, pointer.y, 80 + pulse * 85, "112,225,209", .16 + pulse * .24);
+    paintField(pointer.x, pointer.y, 80 + pulse * 85, "112,225,209", (.16 + pulse * .24) * withdraw);
   }
 
   context.restore();
@@ -446,6 +460,27 @@ class ThresholdAudio {
     return this.muted;
   }
 
+  // The house's last act is to say the seed once, all the way through, while
+  // it goes quiet underneath.
+  farewell() {
+    window.clearTimeout(this.motifTimer);
+    this.motifTimer = 0;
+
+    if (this.preferNative || !this.context) {
+      this.fadeOut();
+      return;
+    }
+
+    const pans = [-.38, .34, -.12, .22];
+    const now = this.context.currentTime + .15;
+    readSeed().forEach((degree, index) => {
+      const frequency = SEED_ROOT * Math.pow(2, SEED_SCALE[degree] / 12);
+      this.playSeed(frequency, now + index * 1.15, pans[index], 3.6);
+    });
+
+    this.fadeTo(.0001, 8.4);
+  }
+
   fadeOut() {
     window.clearTimeout(this.motifTimer);
     this.motifTimer = 0;
@@ -521,6 +556,48 @@ soundControl.addEventListener("click", async () => {
   soundControl.textContent = muted ? "listen" : "silence";
   soundControl.setAttribute("aria-pressed", String(muted));
 });
+
+function closeHouse() {
+  closing = true;
+  threshold.dataset.state = "closing";
+  thresholdAudio.farewell();
+  houseStatus.textContent = "The house is closing. You can stay, or let the traces go.";
+  if (reducedMotion) {
+    withdraw = 0;
+    draw(0);
+  }
+  window.setTimeout(() => stayControl.focus(), reducedMotion ? 60 : 2_400);
+}
+
+function stayInHouse() {
+  closing = false;
+  threshold.dataset.state = "house";
+  houseStatus.textContent = "The house is open again.";
+  if (thresholdAudio.context && !thresholdAudio.muted) {
+    thresholdAudio.fadeTo(.72, 3.4);
+    thresholdAudio.scheduleMotif(1.6);
+  }
+  if (reducedMotion) {
+    withdraw = 1;
+    draw(0);
+  }
+  leaveControl.focus();
+}
+
+// The only way a house made of traces can let someone leave it.
+function releaseTraces() {
+  try {
+    localStorage.removeItem("house-room-visits");
+    localStorage.removeItem("house-archive");
+  } catch (error) {
+    // Nothing was stored, so nothing has to be given up.
+  }
+  location.replace(location.pathname);
+}
+
+leaveControl.addEventListener("click", closeHouse);
+stayControl.addEventListener("click", stayInHouse);
+releaseControl.addEventListener("click", releaseTraces);
 
 rooms.forEach(room => {
   room.addEventListener("click", chooseRoom);

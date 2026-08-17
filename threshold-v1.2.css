@@ -116,10 +116,149 @@
   filter: blur(0);
 }
 
+/* A house that can be entered and never left is not a house. Once every room
+   has left a trace, the threshold offers the other gesture.
+
+   Closing is a third state of the threshold, so it has to hold the house open
+   while the apertures withdraw, and keep the arrival screen from returning
+   underneath them. */
+[data-state="closing"] .house {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+[data-state="closing"] .arrival {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-state="closing"] #threshold-field { opacity: .92; }
+
+.leave {
+  position: absolute;
+  left: max(1.4rem, env(safe-area-inset-left));
+  bottom: max(1.3rem, env(safe-area-inset-bottom));
+  z-index: 5;
+  padding: .55rem 0;
+  border: 0;
+  border-bottom: 1px solid rgba(236, 234, 244, .24);
+  color: rgba(236, 234, 244, .52);
+  background: transparent;
+  cursor: pointer;
+  font-size: .7rem;
+  letter-spacing: .08em;
+}
+
+.leave:hover,
+.leave:focus-visible {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.closing {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2.4rem;
+  padding: clamp(1.5rem, 8vw, 8rem);
+  text-align: center;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 3.4s ease 2.2s, visibility 3.4s;
+}
+
+[data-state="closing"] .closing {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+[data-state="closing"] .house-nav,
+[data-state="closing"] .sound,
+[data-state="closing"] .leave,
+[data-state="closing"] .unformed {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.4s ease;
+}
+
+/* The rooms withdraw one after another rather than all at once. */
+[data-state="closing"] .room {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.9s ease;
+}
+
+[data-state="closing"] .room-conversation { transition-delay: .1s; }
+[data-state="closing"] .room-colour { transition-delay: .34s; }
+[data-state="closing"] .room-afterimage { transition-delay: .58s; }
+[data-state="closing"] .room-garden { transition-delay: .82s; }
+[data-state="closing"] .room-machine { transition-delay: 1.06s; }
+[data-state="closing"] .room-listening { transition-delay: 1.3s; }
+[data-state="closing"] .room-archive { transition-delay: 1.54s; }
+[data-state="closing"] .room-window { transition-delay: 1.78s; }
+
+.closing-line {
+  margin: 0;
+  max-width: 26ch;
+  color: rgba(236, 234, 244, .84);
+  font: 300 clamp(1.35rem, 3.4vw, 2.5rem)/1.5 var(--sans);
+  letter-spacing: -.01em;
+}
+
+.closing-actions {
+  display: flex;
+  gap: 2rem;
+  align-items: baseline;
+}
+
+.closing-actions button {
+  padding: .6rem 0;
+  border: 0;
+  border-bottom: 1px solid rgba(236, 234, 244, .26);
+  color: rgba(236, 234, 244, .74);
+  background: transparent;
+  cursor: pointer;
+  font-size: .74rem;
+  letter-spacing: .09em;
+  transition: color .7s ease, border-color .7s ease;
+}
+
+.closing-actions button:hover,
+.closing-actions button:focus-visible {
+  color: var(--cyan);
+  border-color: var(--cyan);
+}
+
+#release:hover,
+#release:focus-visible {
+  color: var(--warm);
+  border-color: var(--warm);
+}
+
+.closing-note {
+  margin: 0;
+  max-width: 44ch;
+  color: rgba(178, 175, 192, .92);
+  font-family: var(--mono);
+  font-size: clamp(.6rem, .95vw, .7rem);
+  line-height: 1.8;
+  letter-spacing: .04em;
+}
+
 @media (max-width: 650px) {
   /* The apertures are the navigation on a phone; the pill of room names is
      not, and it stops fitting here. */
   .house-nav { display: none; }
+
+  .closing { gap: 1.9rem; }
+  .closing-actions { gap: 1.5rem; }
 
   .room { width: min(30vw, 8.6rem); }
   .room-conversation { left: 27%; top: 17%; }
