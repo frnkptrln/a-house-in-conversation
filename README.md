@@ -36,11 +36,31 @@ A 92-second browser-native sound room built from filtered air, low harmonic plan
 
 Path: `/rooms/afterimage/`
 
+### The Window
+
+An intentionally silent room without a duration. Movement makes the glass perceptible — reflections gather, marks remain briefly — and stillness lets the near layer recede until the distance resolves again. Neither condition is a mistake, and the room does not end the view on the visitor's behalf.
+
+Path: `/rooms/window/`
+
+### The Machine Room
+
+The room the others are made of. The house's four-note seed stands here as a mechanism — four notes on a lattice of scale degrees, a rotor that returns to each of them, a cold pluck when it arrives. The notes can be moved, the change is kept in local browser storage, and the threshold sings what was left behind. It is the only room that alters another, and the only one that can be undone.
+
+Path: `/rooms/machine/`
+
+### The Archive
+
+The room that holds what the others said, and loses it. Rooms write into it by being entered; fragments surface on their own, reach for one another briefly, and come back fainter each time they are read. Holding one in view spends it faster. A fragment read past legibility is deleted for good, so the archive can empty — and says so when it does. It accumulates nothing that could harden into a profile.
+
+Path: `/rooms/archive/`
+
 ## The threshold
 
-The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. Open rooms appear as atmospheres. Unformed traces leave space for the Machine Room, Window, and Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
+The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. The Machine Room can genuinely alter it: the threshold's live voices sing whichever seed it finds in local storage, while the fixed renders behind it keep the original four notes. Open rooms appear as atmospheres: each room lends the threshold its own light and pulls the entrance's filter toward its own register. Every room named in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2) is now built.
 
 Completed rooms leave a subtle trace at the threshold using local browser storage. Nothing is transmitted, measured, or optimized.
+
+Once every room has left a trace, the threshold offers the gesture it withheld until then: the house can be left. The apertures withdraw one after another, the seed is said once all the way through, and the visitor can stay or let the traces go — which clears this browser's memory of the house and returns the entrance to a stranger. The seed left in the Machine Room is not a trace of the visitor and remains.
 
 ## Run locally
 
@@ -58,7 +78,7 @@ The repository is a static work designed for GitHub Pages. Publish from the root
 
 ## Status
 
-Version 1.1 — five finished rooms and a threshold with its own visual and musical language.
+Version 1.2 — eight finished rooms and a threshold with its own visual and musical language.
 
 ## Credit
 

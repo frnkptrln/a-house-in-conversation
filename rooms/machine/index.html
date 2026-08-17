@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07090c">
+  <meta name="description" content="The Machine Room — where the house's four-note seed is built and can be altered.">
+  <title>The Machine Room — A House in Conversation</title>
+  <link rel="stylesheet" href="style.css?v=1.0.0">
+</head>
+<body>
+  <nav class="house-nav" aria-label="House navigation">
+    <a href="../../#rooms">house</a>
+    <a href="../conversation/">conversation</a>
+    <a href="../colour/">colour</a>
+    <a href="../garden/">garden</a>
+    <a href="../listening/">listening</a>
+    <a href="../afterimage/">afterimage</a>
+    <a href="../window/">window</a>
+    <span aria-current="page">machine</span>
+    <a href="../archive/">archive</a>
+  </nav>
+
+  <main id="room" data-state="threshold" data-instruction="alter">
+    <section class="threshold" aria-labelledby="machine-title">
+      <p class="eyebrow">the room that makes the others possible</p>
+      <h1 id="machine-title">the<br>machine room</h1>
+      <p class="rule">four notes are assembled here<br>and they will keep what you do to them</p>
+      <button id="enter" type="button">open the mechanism</button>
+    </section>
+
+    <section class="mechanism" aria-label="The house's seed, running">
+      <canvas
+        id="machine"
+        tabindex="0"
+        aria-label="The house's four-note seed as a running mechanism. Left and right arrow keys choose a note, up and down arrow keys raise or lower it. Pointer and touch reach the same four notes."
+      ></canvas>
+
+      <dl class="readout" aria-live="off">
+        <div><dt>seed</dt><dd id="readout-seed">E · B · F♯ · A</dd></div>
+        <div><dt>state</dt><dd id="readout-state">as the house wrote it</dd></div>
+        <div><dt>loop</dt><dd id="readout-loop">9.6 s</dd></div>
+        <div><dt>traces</dt><dd id="readout-traces">0 / 8</dd></div>
+      </dl>
+
+      <p class="instruction" aria-hidden="true">
+        <span>take a note and move it</span>
+        <span>the threshold will remember</span>
+      </p>
+
+      <div class="controls">
+        <button id="sound" type="button" aria-pressed="false">silence</button>
+        <button id="forget" type="button">let the house forget</button>
+        <a class="return" href="../../#rooms">return to the rooms</a>
+      </div>
+
+      <p id="status" class="visually-hidden" aria-live="polite">The mechanism is running.</p>
+    </section>
+  </main>
+
+  <script src="script.js?v=1.0.0"></script>
+</body>
+</html>

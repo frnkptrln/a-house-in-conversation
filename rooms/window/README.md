@@ -19,4 +19,6 @@ The silence is material, not a missing soundtrack. There is no audio element, mi
 
 ## Status
 
-Standalone proof. The room is deliberately not linked from the house threshold until its movement, stillness, and mobile legibility have been experienced.
+Open. The room is the sixth in the house and is reached from the threshold like any other.
+
+At the threshold the Window is the only aperture wider than it is tall, and the only one placed at the edge of the field: pale glass with a single warm point in it. Leaning toward it lowers the entrance's filter further than any other room does, so the house grows quiet as you approach the room that has no sound to offer.

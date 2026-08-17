@@ -8,6 +8,7 @@
   <title>A House in Conversation</title>
   <link rel="stylesheet" href="style.css?v=1.0.1">
   <link rel="stylesheet" href="threshold-v1.1.css?v=1.1.0">
+  <link rel="stylesheet" href="threshold-v1.2.css?v=1.2.0">
 </head>
 <body>
   <main id="threshold" data-state="arrival">
@@ -27,6 +28,9 @@
         <a href="rooms/garden/">garden</a>
         <a href="rooms/listening/">listening</a>
         <a href="rooms/afterimage/">afterimage</a>
+        <a href="rooms/window/">window</a>
+        <a href="rooms/machine/">machine</a>
+        <a href="rooms/archive/">archive</a>
       </nav>
 
       <nav class="rooms" aria-label="Rooms in the house">
@@ -54,6 +58,21 @@
           <span class="aperture" aria-hidden="true"></span>
           <span class="room-name">the listening room</span>
         </a>
+
+        <a class="room room-window" data-room="window" href="rooms/window/">
+          <span class="aperture" aria-hidden="true"></span>
+          <span class="room-name">the window</span>
+        </a>
+
+        <a class="room room-machine" data-room="machine" href="rooms/machine/">
+          <span class="aperture" aria-hidden="true"></span>
+          <span class="room-name">the machine room</span>
+        </a>
+
+        <a class="room room-archive" data-room="archive" href="rooms/archive/">
+          <span class="aperture" aria-hidden="true"></span>
+          <span class="room-name">the archive</span>
+        </a>
       </nav>
 
       <div class="unformed" aria-hidden="true">
@@ -61,7 +80,17 @@
       </div>
 
       <button id="sound" class="sound" type="button" aria-pressed="false">silence</button>
-      <p id="house-status" class="visually-hidden" aria-live="polite">Five rooms are open.</p>
+      <button id="leave" class="leave" type="button" hidden>leave the house</button>
+      <p id="house-status" class="visually-hidden" aria-live="polite">Eight rooms are open.</p>
+    </section>
+
+    <section id="closing" class="closing" aria-label="Leaving the house">
+      <p class="closing-line">every room has been entered.<br>the house is not the same shape it was.</p>
+      <div class="closing-actions">
+        <button id="stay" type="button">stay</button>
+        <button id="release" type="button">let the traces go</button>
+      </div>
+      <p id="closing-note" class="closing-note">letting them go clears this browser's memory of the house: which rooms you entered, and everything the archive still held. The seed you left in the machine room stays.</p>
     </section>
   </main>
 
@@ -72,9 +101,12 @@
       <a href="rooms/garden/">The Garden</a>
       <a href="rooms/listening/">The Listening Room</a>
       <a href="rooms/afterimage/">The Afterimage</a>
+      <a href="rooms/window/">The Window</a>
+      <a href="rooms/machine/">The Machine Room</a>
+      <a href="rooms/archive/">The Archive</a>
     </nav>
   </noscript>
   <audio id="threshold-track" src="audio/threshold.m4a" preload="metadata" playsinline loop></audio>
-  <script src="script.js?v=1.0.1"></script>
+  <script src="script.js?v=1.2.0"></script>
 </body>
 </html>
