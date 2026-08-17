@@ -42,9 +42,15 @@ An intentionally silent room without a duration. Movement makes the glass percep
 
 Path: `/rooms/window/`
 
+### The Machine Room
+
+The room the others are made of. The house's four-note seed stands here as a mechanism — four notes on a lattice of scale degrees, a rotor that returns to each of them, a cold pluck when it arrives. The notes can be moved, the change is kept in local browser storage, and the threshold sings what was left behind. It is the only room that alters another, and the only one that can be undone.
+
+Path: `/rooms/machine/`
+
 ## The threshold
 
-The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. Open rooms appear as atmospheres: each room lends the threshold its own light and pulls the entrance's filter toward its own register. Unformed traces leave space for the Machine Room and the Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
+The entrance is a small generative sound and prismatic light field rather than a conventional menu. A sparse four-note seed appears and recedes; rooms can remember, alter, or resist it. The Machine Room can genuinely alter it: the threshold's live voices sing whichever seed it finds in local storage, while the fixed renders behind it keep the original four notes. Open rooms appear as atmospheres: each room lends the threshold its own light and pulls the entrance's filter toward its own register. Unformed traces leave space for the Archive described in [the future-house issue](https://github.com/frnkptrln/a-house-in-conversation/issues/2).
 
 Completed rooms leave a subtle trace at the threshold using local browser storage. Nothing is transmitted, measured, or optimized.
 
@@ -64,7 +70,7 @@ The repository is a static work designed for GitHub Pages. Publish from the root
 
 ## Status
 
-Version 1.2 — six finished rooms and a threshold with its own visual and musical language.
+Version 1.2 — seven finished rooms and a threshold with its own visual and musical language.
 
 ## Credit
 

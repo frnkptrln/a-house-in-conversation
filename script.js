@@ -76,8 +76,38 @@ const atmospheres = {
       { colour: "200,213,216", radius: 1.66, strength: .5, trace: .18, ax: 7, sx: .00004, ay: 5, sy: .00003 },
       { colour: "250,209,146", radius: .58, strength: .3, trace: .13, ax: -4, sx: .000035, ay: -3, sy: .000045 }
     ]
+  },
+  // The Machine Room is the one cold light in the house, and the only one
+  // that barely drifts.
+  machine: {
+    lean: 1_420,
+    fields: [
+      { colour: "112,225,209", radius: .72, strength: .58, trace: .2, ax: 3, sx: .00013, ay: 4, sy: .00011 },
+      { colour: "140,166,176", radius: 1.44, strength: .34, trace: .14, ax: -5, sx: .00006, ay: -4, sy: .00008 }
+    ]
   }
 };
+
+// The four-note seed the house is built on. The Machine Room can move each
+// note along the scale and leaves the result here; the threshold sings
+// whatever it finds. Only the live generative voices can follow — the fixed
+// renders in the Garden and the Listening Room keep the original seed.
+const SEED_ROOT = 329.63;
+const SEED_SCALE = [0, 2, 4, 5, 7, 9, 11, 12, 14];
+const SEED_DEFAULT = [0, 4, 1, 3];
+
+function readSeed() {
+  try {
+    const stored = JSON.parse(localStorage.getItem("house-seed") || "null");
+    const usable = Array.isArray(stored)
+      && stored.length === SEED_DEFAULT.length
+      && stored.every(degree => Number.isInteger(degree) && degree >= 0 && degree < SEED_SCALE.length);
+    if (usable) return stored;
+  } catch (error) {
+    // The threshold sings the house's own seed when nothing is stored.
+  }
+  return SEED_DEFAULT;
+}
 
 function readVisits() {
   try {
@@ -95,6 +125,9 @@ rooms.forEach(room => {
 const visitedCount = rooms.filter(room => room.classList.contains("visited")).length;
 if (visitedCount === 1) houseStatus.textContent = "One room has left a trace.";
 if (visitedCount > 1) houseStatus.textContent = `${visitedCount} rooms have left traces.`;
+
+const seedAltered = readSeed().some((degree, index) => degree !== SEED_DEFAULT[index]);
+if (seedAltered) houseStatus.textContent += " The seed has been altered.";
 
 function resize() {
   ratio = Math.min(devicePixelRatio || 1, 2);
@@ -355,12 +388,11 @@ class ThresholdAudio {
         [0, 3.2, 6.05, 9.8],
         [0, 2.9, 6.4, 9.35]
       ];
-      const notes = [
-        { frequency: 329.63, pan: -.38 },
-        { frequency: 493.88, pan: .34 },
-        { frequency: 369.99, pan: -.12 },
-        { frequency: 440, pan: .22 }
-      ];
+      const pans = [-.38, .34, -.12, .22];
+      const notes = readSeed().map((degree, index) => ({
+        frequency: SEED_ROOT * Math.pow(2, SEED_SCALE[degree] / 12),
+        pan: pans[index]
+      }));
       const form = forms[this.motifForm];
       const now = this.context.currentTime + .08;
 
