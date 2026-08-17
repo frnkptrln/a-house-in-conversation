@@ -31,6 +31,46 @@ const motes = Array.from({ length: 46 }, (_, index) => ({
   size: index % 8 === 0 ? 1.7 : .65
 }));
 
+// Every room lends the threshold its own light and its own cutoff. A room that
+// has been visited leaves a slightly stronger field behind. `ax` and `ay` are
+// drift amplitudes in pixels, `sx` and `sy` the speeds that carry them.
+const atmospheres = {
+  conversation: {
+    lean: 480,
+    fields: [
+      { colour: "167,139,250", radius: 1.45, strength: 1, trace: .24, ax: 18, sx: .00011, ay: 13, sy: .00009 }
+    ]
+  },
+  colour: {
+    lean: 940,
+    fields: [
+      { colour: "255,111,145", radius: 1.5, strength: .72, trace: .2, ax: 21, sx: .0001, ay: 15, sy: .00012 },
+      { colour: "90,141,255", radius: 1.43, strength: .68, trace: .2, ax: -19, sx: .00008, ay: -17, sy: .0001 }
+    ]
+  },
+  garden: {
+    lean: 760,
+    fields: [
+      { colour: "126,166,102", radius: 1.55, strength: .76, trace: .22, ax: 14, sx: .000075, ay: 18, sy: .000095 },
+      { colour: "232,189,136", radius: 1.36, strength: .52, trace: .16, ax: -11, sx: .00009, ay: -13, sy: .00007 }
+    ]
+  },
+  listening: {
+    lean: 1_080,
+    fields: [
+      { colour: "142,168,183", radius: 1.62, strength: .66, trace: .22, ax: 12, sx: .000055, ay: 10, sy: .00007 },
+      { colour: "201,213,215", radius: 1.34, strength: .38, trace: .15, ax: -9, sx: .000045, ay: -11, sy: .00006 }
+    ]
+  },
+  afterimage: {
+    lean: 380,
+    fields: [
+      { colour: "180,155,130", radius: 1.52, strength: .4, trace: .18, ax: 10, sx: .00006, ay: 12, sy: .00008 },
+      { colour: "142,168,183", radius: 1.28, strength: .32, trace: .14, ax: -8, sx: .00005, ay: -9, sy: .000065 }
+    ]
+  }
+};
+
 function readVisits() {
   try {
     return JSON.parse(localStorage.getItem("house-room-visits") || "{}");
@@ -80,74 +120,46 @@ function paintField(x, y, radius, colour, strength) {
 
 function draw(time) {
   const movementTime = reducedMotion ? 0 : time;
-  const conversation = roomCentre(document.querySelector(".room-conversation"));
-  const colour = roomCentre(document.querySelector(".room-colour"));
-  const garden = roomCentre(document.querySelector(".room-garden"));
-  const listening = roomCentre(document.querySelector(".room-listening"));
   const energy = entered ? 1 : .34;
+  let houseX = 0;
+  let houseY = 0;
+  let counted = 0;
   pulse *= .965;
 
   context.clearRect(0, 0, width, height);
   context.save();
   context.globalCompositeOperation = "screen";
 
-  paintField(
-    conversation.x + Math.sin(movementTime * .00011) * 18,
-    conversation.y + Math.cos(movementTime * .00009) * 13,
-    conversation.radius * 1.45,
-    "167,139,250",
-    energy + (visits.conversation ? .24 : 0)
-  );
-  paintField(
-    colour.x + Math.cos(movementTime * .0001) * 21,
-    colour.y + Math.sin(movementTime * .00012) * 15,
-    colour.radius * 1.5,
-    "255,111,145",
-    energy * .72 + (visits.colour ? .2 : 0)
-  );
-  paintField(
-    colour.x - Math.sin(movementTime * .00008) * 19,
-    colour.y - Math.cos(movementTime * .0001) * 17,
-    colour.radius * 1.43,
-    "90,141,255",
-    energy * .68 + (visits.colour ? .2 : 0)
-  );
-  paintField(
-    garden.x + Math.sin(movementTime * .000075) * 14,
-    garden.y + Math.cos(movementTime * .000095) * 18,
-    garden.radius * 1.55,
-    "126,166,102",
-    energy * .76 + (visits.garden ? .22 : 0)
-  );
-  paintField(
-    garden.x - Math.cos(movementTime * .00009) * 11,
-    garden.y - Math.sin(movementTime * .00007) * 13,
-    garden.radius * 1.36,
-    "232,189,136",
-    energy * .52 + (visits.garden ? .16 : 0)
-  );
-  paintField(
-    listening.x + Math.sin(movementTime * .000055) * 12,
-    listening.y + Math.cos(movementTime * .00007) * 10,
-    listening.radius * 1.62,
-    "142,168,183",
-    energy * .66 + (visits.listening ? .22 : 0)
-  );
-  paintField(
-    listening.x - Math.cos(movementTime * .000045) * 9,
-    listening.y - Math.sin(movementTime * .00006) * 11,
-    listening.radius * 1.34,
-    "201,213,215",
-    energy * .38 + (visits.listening ? .15 : 0)
-  );
+  for (const room of rooms) {
+    const atmosphere = atmospheres[room.dataset.room];
+    if (!atmosphere) continue;
 
-  paintField(
-    (conversation.x + colour.x + garden.x + listening.x) / 4,
-    (conversation.y + colour.y + garden.y + listening.y) / 4,
-    Math.min(width, height) * (.08 + pulse * .035),
-    "112,225,209",
-    (.08 + pulse * .09) * energy
-  );
+    const centre = roomCentre(room);
+    const trace = visits[room.dataset.room] ? 1 : 0;
+    houseX += centre.x;
+    houseY += centre.y;
+    counted++;
+
+    for (const field of atmosphere.fields) {
+      paintField(
+        centre.x + Math.sin(movementTime * field.sx) * field.ax,
+        centre.y + Math.cos(movementTime * field.sy) * field.ay,
+        centre.radius * field.radius,
+        field.colour,
+        energy * field.strength + trace * field.trace
+      );
+    }
+  }
+
+  if (counted) {
+    paintField(
+      houseX / counted,
+      houseY / counted,
+      Math.min(width, height) * (.08 + pulse * .035),
+      "112,225,209",
+      (.08 + pulse * .09) * energy
+    );
+  }
 
   for (const trace of unformed) {
     const x = width * trace.x + Math.sin(movementTime * .00009 + trace.phase) * 9;
@@ -364,13 +376,7 @@ class ThresholdAudio {
   lean(roomName) {
     if (this.preferNative || !this.context || !this.filter) return;
     const now = this.context.currentTime;
-    const target = roomName === "colour"
-      ? 940
-      : roomName === "garden"
-        ? 760
-        : roomName === "listening"
-          ? 1_080
-          : 480;
+    const target = atmospheres[roomName]?.lean ?? 620;
     this.filter.frequency.cancelScheduledValues(now);
     this.filter.frequency.setValueAtTime(this.filter.frequency.value, now);
     this.filter.frequency.exponentialRampToValueAtTime(target, now + 1.8);
