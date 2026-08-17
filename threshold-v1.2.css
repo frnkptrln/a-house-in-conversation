@@ -1,0 +1,70 @@
+/* Sixth-room threshold composition. Loaded after the fifth-room styles.
+
+   The rooms alternate high and low across the width instead of settling into
+   a row, so the field reads as a rhythm rather than a plan. The Window sits
+   furthest out and is the only aperture wider than it is tall: it is the one
+   room that looks at something beyond the house. */
+.room-conversation { left: 10%; top: 61%; }
+.room-colour { left: 26%; top: 34%; }
+.room-afterimage { left: 42%; top: 67%; }
+.room-garden { left: 58%; top: 32%; }
+.room-listening { left: 75%; top: 61%; }
+
+.room-window {
+  left: 90%;
+  top: 34%;
+  width: clamp(8rem, 15vw, 14.5rem);
+  aspect-ratio: 1.22;
+}
+
+.room-window .aperture {
+  animation-delay: -6s;
+  border-radius: 44% 56% 47% 53% / 53% 47% 53% 47%;
+  background:
+    radial-gradient(ellipse at 50% 27%, rgba(200, 213, 216, .2), transparent 47%),
+    radial-gradient(ellipse at 64% 58%, rgba(250, 209, 146, .12), transparent 21%),
+    radial-gradient(ellipse at 50% 78%, rgba(7, 18, 29, .72), transparent 62%);
+  box-shadow:
+    0 -14px 120px rgba(200, 213, 216, .07),
+    0 18px 90px rgba(7, 18, 29, .3);
+}
+
+.room-window .aperture::before {
+  border-color: rgba(228, 233, 234, .15);
+  box-shadow:
+    0 0 60px rgba(200, 213, 216, .07),
+    inset 0 0 46px rgba(143, 166, 176, .05);
+}
+
+/* A horizon rather than a core. */
+.room-window .aperture::after {
+  inset: 47% 21% 44%;
+  border-radius: 40%;
+  opacity: .5;
+  background: #c8d5d8;
+  filter: blur(11px);
+}
+
+@media (max-width: 650px) {
+  /* Six apertures are the navigation on a phone; the pill of room names is
+     not, and it stops fitting here. */
+  .house-nav { display: none; }
+
+  .room { width: min(33vw, 9.6rem); }
+  .room-conversation { left: 27%; top: 22%; }
+  .room-colour { left: 73%; top: 22%; width: min(34vw, 9.9rem); }
+  .room-afterimage { left: 27%; top: 48%; width: min(33vw, 9.6rem); }
+  .room-garden { left: 73%; top: 48%; width: min(33vw, 9.6rem); }
+  .room-listening { left: 27%; top: 74%; }
+  .room-window { left: 73%; top: 74%; width: min(36vw, 10.4rem); }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .room { width: min(15vw, 6.4rem); }
+  .room-conversation { left: 9%; top: 66%; }
+  .room-colour { left: 26%; top: 38%; }
+  .room-afterimage { left: 43%; top: 68%; }
+  .room-garden { left: 60%; top: 38%; }
+  .room-listening { left: 77%; top: 66%; }
+  .room-window { left: 92%; top: 38%; width: min(16vw, 6.8rem); }
+}

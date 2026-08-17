@@ -283,3 +283,9 @@ body[data-room-state="ending"] .house-nav a { color: rgba(223, 231, 234, .43); }
   *::before,
   *::after { transition-duration: .01ms !important; }
 }
+
+@media (max-width: 650px) {
+  /* The pill of room names stops fitting once the house has six rooms.
+     The way back to the threshold remains; the house itself is the map. */
+  .house-nav a:not([href$="#rooms"]) { display: none; }
+}

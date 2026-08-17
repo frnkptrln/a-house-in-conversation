@@ -68,6 +68,14 @@ const atmospheres = {
       { colour: "180,155,130", radius: 1.52, strength: .4, trace: .18, ax: 10, sx: .00006, ay: 12, sy: .00008 },
       { colour: "142,168,183", radius: 1.28, strength: .32, trace: .14, ax: -8, sx: .00005, ay: -9, sy: .000065 }
     ]
+  },
+  // The Window is silent, so leaning toward it takes the house down with it.
+  window: {
+    lean: 240,
+    fields: [
+      { colour: "200,213,216", radius: 1.66, strength: .5, trace: .18, ax: 7, sx: .00004, ay: 5, sy: .00003 },
+      { colour: "250,209,146", radius: .58, strength: .3, trace: .13, ax: -4, sx: .000035, ay: -3, sy: .000045 }
+    ]
   }
 };
 
