@@ -1,119 +1,105 @@
 /* Threshold composition for the grown house. Loaded after the fifth-room styles.
 
-   The rooms alternate high and low across the width instead of settling into
-   a row, so the field reads as a rhythm rather than a plan. The Window is the
-   only aperture wider than it is tall: it is the one room that looks at
-   something beyond the house. The Machine Room is the only one with corners. */
-.room { width: clamp(6.4rem, 11.8vw, 11.8rem); }
+   The house is read left to right in the order it grew: Conversation, Colour,
+   Garden, Listening, Afterimage — the five rooms that hold a piece and end.
+   Below and smaller, set apart and further away, the three that have no
+   duration at all: Window, Machine Room, Archive.
 
-.room-conversation { left: 8%; top: 62%; }
-.room-colour { left: 20%; top: 33%; width: clamp(6.9rem, 12.9vw, 12.9rem); }
-.room-afterimage { left: 32%; top: 67%; width: clamp(6.6rem, 12.2vw, 12.2rem); }
-.room-garden { left: 44%; top: 32%; width: clamp(6.7rem, 12.5vw, 12.5rem); }
-.room-machine { left: 56%; top: 67%; width: clamp(6rem, 10.8vw, 10.8rem); }
-.room-listening { left: 68%; top: 33%; }
-.room-archive { left: 80%; top: 64%; width: clamp(6.6rem, 12.2vw, 12.2rem); }
+   The apertures themselves are no longer painted here. Each one is a live
+   miniature of its own room drawn onto the threshold canvas behind these
+   tiles, so what is left in CSS is the edge, the name, and the way a room
+   answers being approached. */
 
+.rooms {
+  perspective: 900px;
+}
+
+.room {
+  width: clamp(7rem, 14vw, 14rem);
+  will-change: transform;
+}
+
+/* The five that end. */
+.room-conversation { left: 12%; top: 42%; width: clamp(8.2rem, 16.5vw, 16.5rem); }
+.room-colour { left: 30%; top: 31%; width: clamp(7.8rem, 15.5vw, 15.5rem); }
+.room-garden { left: 48%; top: 43%; width: clamp(7.5rem, 15vw, 15rem); }
+.room-listening { left: 66%; top: 31%; width: clamp(7rem, 14vw, 14rem); }
+.room-afterimage { left: 84%; top: 43%; width: clamp(6.8rem, 13.5vw, 13.5rem); }
+
+/* The three that do not. Further down, further away, smaller. */
 .room-window {
-  left: 92%;
-  top: 32%;
-  width: clamp(7rem, 12.9vw, 12.9rem);
+  left: 27%;
+  top: 77%;
+  width: clamp(6.6rem, 12.8vw, 12.8rem);
   aspect-ratio: 1.22;
 }
 
-/* Paper that has already begun to go. The edges do not hold. */
-.room-archive .aperture {
-  animation-delay: -14s;
-  opacity: .52;
-  filter: blur(6px);
-  border-radius: 51% 49% 46% 54% / 44% 57% 43% 56%;
-  background:
-    radial-gradient(ellipse at 44% 40%, rgba(184, 173, 156, .2), transparent 44%),
-    radial-gradient(ellipse at 62% 66%, rgba(140, 122, 96, .16), transparent 47%),
-    radial-gradient(ellipse at 50% 50%, rgba(12, 11, 10, .5), transparent 72%);
-  box-shadow: -12px 10px 110px rgba(184, 173, 156, .05);
-}
+.room-machine { left: 50%; top: 78%; width: clamp(5.8rem, 10.6vw, 10.6rem); }
+.room-archive { left: 73%; top: 77%; width: clamp(6.2rem, 11.6vw, 11.6rem); }
 
-.room-archive .aperture::before {
-  border-color: rgba(230, 224, 214, .1);
-  box-shadow: inset 0 0 40px rgba(184, 173, 156, .04);
-}
-
-.room-archive .aperture::after {
-  background: #b8ad9c;
-  opacity: .28;
-  filter: blur(19px);
-}
-
-.room-archive:hover .aperture,
-.room-archive:focus-visible .aperture {
-  opacity: .88;
-  filter: blur(2.5px);
-}
-
-.room-window .aperture {
-  animation-delay: -6s;
-  border-radius: 44% 56% 47% 53% / 53% 47% 53% 47%;
-  background:
-    radial-gradient(ellipse at 50% 27%, rgba(200, 213, 216, .2), transparent 47%),
-    radial-gradient(ellipse at 64% 58%, rgba(250, 209, 146, .12), transparent 21%),
-    radial-gradient(ellipse at 50% 78%, rgba(7, 18, 29, .72), transparent 62%);
-  box-shadow:
-    0 -14px 120px rgba(200, 213, 216, .07),
-    0 18px 90px rgba(7, 18, 29, .3);
-}
-
-.room-window .aperture::before {
-  border-color: rgba(228, 233, 234, .15);
-  box-shadow:
-    0 0 60px rgba(200, 213, 216, .07),
-    inset 0 0 46px rgba(143, 166, 176, .05);
-}
-
-/* A horizon rather than a core. */
-.room-window .aperture::after {
-  inset: 47% 21% 44%;
-  border-radius: 40%;
-  opacity: .5;
-  background: #c8d5d8;
-  filter: blur(11px);
-}
-
-/* Every other room breathes. This one keeps still and has edges. */
-.room-machine .aperture {
+/* The canvas carries the picture; the aperture is only its edge. */
+.aperture {
+  background: none;
+  box-shadow: none;
+  opacity: 1;
+  filter: none;
+  transform: none;
   animation: none;
-  border-radius: 7%;
-  opacity: .6;
-  transform: scale(.84) rotate(0);
-  filter: blur(1.5px);
-  background:
-    repeating-linear-gradient(90deg, rgba(140, 166, 176, .075) 0 1px, transparent 1px 13px),
-    repeating-linear-gradient(0deg, rgba(140, 166, 176, .075) 0 1px, transparent 1px 13px),
-    radial-gradient(ellipse at 50% 50%, rgba(112, 225, 209, .17), transparent 54%),
-    linear-gradient(168deg, rgba(18, 26, 30, .34), rgba(7, 9, 12, .12));
-  box-shadow: 0 0 90px rgba(112, 225, 209, .06);
+  transition: opacity 1.4s ease;
 }
 
-.room-machine .aperture::before {
-  inset: 9%;
-  border-radius: 4%;
-  border-color: rgba(112, 225, 209, .2);
-  box-shadow: inset 0 0 34px rgba(112, 225, 209, .045);
+.aperture::before {
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(236, 234, 244, .09);
+  box-shadow: none;
+  transition: border-color 1s ease, box-shadow 1.4s ease;
 }
 
-.room-machine .aperture::after {
-  inset: 43%;
-  border-radius: 0;
-  opacity: .6;
-  background: var(--cyan);
-  filter: blur(9px);
+.aperture::after { content: none; }
+
+.room-machine .aperture,
+.room-machine .aperture::before { border-radius: 5%; }
+
+.room-window .aperture,
+.room-window .aperture::before { border-radius: 4% / 6%; }
+
+.room:hover .aperture::before,
+.room:focus-visible .aperture::before {
+  border-color: rgba(236, 234, 244, .5);
+  box-shadow:
+    0 0 0 1px rgba(112, 225, 209, .1),
+    0 0 60px rgba(112, 225, 209, .1);
 }
 
-.room-machine:hover .aperture,
-.room-machine:focus-visible .aperture {
-  opacity: .96;
-  transform: scale(.92) rotate(0);
-  filter: blur(0);
+.room:hover .aperture,
+.room:focus-visible .aperture {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.room.visited .aperture::before {
+  border-color: rgba(112, 225, 209, .28);
+  box-shadow: none;
+}
+
+.room-name {
+  bottom: -7%;
+  color: rgba(236, 234, 244, .42);
+  font-size: clamp(.6rem, .86vw, .76rem);
+  letter-spacing: .19em;
+}
+
+.room:hover .room-name,
+.room:focus-visible .room-name { color: var(--ink); }
+
+/* The rooms that do not end name themselves more quietly. */
+.room-window .room-name,
+.room-machine .room-name,
+.room-archive .room-name {
+  color: rgba(236, 234, 244, .3);
+  font-size: clamp(.55rem, .76vw, .68rem);
 }
 
 /* A house that can be entered and never left is not a house. Once every room
@@ -188,7 +174,8 @@
   transition: opacity 1.4s ease;
 }
 
-/* The rooms withdraw one after another rather than all at once. */
+/* The rooms withdraw one after another rather than all at once, in the order
+   the house grew. */
 [data-state="closing"] .room {
   opacity: 0;
   pointer-events: none;
@@ -197,12 +184,12 @@
 
 [data-state="closing"] .room-conversation { transition-delay: .1s; }
 [data-state="closing"] .room-colour { transition-delay: .34s; }
-[data-state="closing"] .room-afterimage { transition-delay: .58s; }
-[data-state="closing"] .room-garden { transition-delay: .82s; }
-[data-state="closing"] .room-machine { transition-delay: 1.06s; }
-[data-state="closing"] .room-listening { transition-delay: 1.3s; }
-[data-state="closing"] .room-archive { transition-delay: 1.54s; }
-[data-state="closing"] .room-window { transition-delay: 1.78s; }
+[data-state="closing"] .room-garden { transition-delay: .58s; }
+[data-state="closing"] .room-listening { transition-delay: .82s; }
+[data-state="closing"] .room-afterimage { transition-delay: 1.06s; }
+[data-state="closing"] .room-window { transition-delay: 1.3s; }
+[data-state="closing"] .room-machine { transition-delay: 1.54s; }
+[data-state="closing"] .room-archive { transition-delay: 1.78s; }
 
 .closing-line {
   margin: 0;
@@ -254,31 +241,39 @@
 
 @media (max-width: 650px) {
   /* The apertures are the navigation on a phone; the pill of room names is
-     not, and it stops fitting here. */
+     not, and it stops fitting here. The order stays the order. */
   .house-nav { display: none; }
+
+  .rooms { perspective: none; }
+
+  .room { width: min(31vw, 9rem); }
+  .room-conversation { left: 27%; top: 16%; width: min(33vw, 9.6rem); }
+  .room-colour { left: 73%; top: 16%; width: min(32vw, 9.3rem); }
+  .room-garden { left: 27%; top: 37%; width: min(31vw, 9rem); }
+  .room-listening { left: 73%; top: 37%; }
+  .room-afterimage { left: 27%; top: 58%; }
+  .room-window { left: 73%; top: 58%; width: min(34vw, 9.9rem); }
+  .room-machine { left: 27%; top: 79%; width: min(27vw, 7.8rem); }
+  .room-archive { left: 73%; top: 79%; width: min(29vw, 8.4rem); }
+
+  .room-name { bottom: -9%; font-size: .58rem; letter-spacing: .1em; }
 
   .closing { gap: 1.9rem; }
   .closing-actions { gap: 1.5rem; }
-
-  .room { width: min(30vw, 8.6rem); }
-  .room-conversation { left: 27%; top: 17%; }
-  .room-colour { left: 73%; top: 17%; width: min(31vw, 8.9rem); }
-  .room-afterimage { left: 27%; top: 38%; width: min(30vw, 8.6rem); }
-  .room-garden { left: 73%; top: 38%; width: min(30vw, 8.6rem); }
-  .room-machine { left: 27%; top: 59%; width: min(28vw, 8rem); }
-  .room-listening { left: 73%; top: 59%; }
-  .room-archive { left: 27%; top: 80%; width: min(30vw, 8.6rem); }
-  .room-window { left: 73%; top: 80%; width: min(33vw, 9.5rem); }
 }
 
 @media (max-height: 520px) and (orientation: landscape) {
-  .room { width: min(12.5vw, 5.4rem); }
-  .room-conversation { left: 7%; top: 66%; }
-  .room-colour { left: 19%; top: 38%; }
-  .room-afterimage { left: 31%; top: 68%; }
-  .room-garden { left: 43%; top: 38%; }
-  .room-machine { left: 55%; top: 66%; }
-  .room-listening { left: 67%; top: 38%; }
-  .room-archive { left: 79%; top: 66%; }
-  .room-window { left: 91%; top: 38%; width: min(13.5vw, 5.8rem); }
+  .room { width: min(12.5vw, 5.6rem); }
+  .room-conversation { left: 10%; top: 40%; width: min(14vw, 6.2rem); }
+  .room-colour { left: 27%; top: 33%; width: min(13.5vw, 6rem); }
+  .room-garden { left: 44%; top: 41%; }
+  .room-listening { left: 61%; top: 33%; }
+  .room-afterimage { left: 78%; top: 41%; }
+  .room-window { left: 27%; top: 79%; width: min(11vw, 5rem); }
+  .room-machine { left: 50%; top: 80%; width: min(9.5vw, 4.3rem); }
+  .room-archive { left: 73%; top: 79%; width: min(10vw, 4.6rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room { transition: none; }
 }
