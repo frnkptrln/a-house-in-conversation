@@ -1,5 +1,11 @@
 # The Listening Room
 
+## The hole
+
+At two minutes and twelve seconds everything stops. The sound drops out over a fifth of a second, stays gone for two and a half, and returns over three and a half; the picture empties with it, so nothing announces that something has been taken away — the visitor is simply left standing where it was.
+
+The room spends its first two minutes teaching you to hear what is there, at which point you have stopped noticing it. The hole is the only way to give that back. Nothing new is introduced: the composition is untouched, and the silence is made by a gain stage sitting below everything the room is already balancing.
+
 The fourth room in **A House in Conversation**: a 216-second spatial composition in which doing less reveals more.
 
 Movement foregrounds a close, tactile voice. After movement stops, distance begins to arrive after a short pause and opens fully over roughly ten seconds. Horizontal position changes the listening position; there is no hidden vertical mapping. There is no score, success state, body tracking, microphone, camera, analytics, or external service. Pointer, touch, and keyboard input remain entirely inside the browser.

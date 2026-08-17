@@ -123,13 +123,18 @@ class ListeningAudio {
     this.master = this.context.createGain();
     this.master.gain.value = .0001;
 
+    // Sits below everything else so the hole can be opened without touching
+    // any of the levels the room is busy balancing.
+    this.hole = this.context.createGain();
+    this.hole.gain.value = 1;
+
     const compressor = this.context.createDynamicsCompressor();
     compressor.threshold.value = -16;
     compressor.knee.value = 12;
     compressor.ratio.value = 2.1;
     compressor.attack.value = .045;
     compressor.release.value = .62;
-    this.master.connect(compressor).connect(this.context.destination);
+    this.master.connect(this.hole).connect(compressor).connect(this.context.destination);
 
     this.nearGain = this.context.createGain();
     this.depthGain = this.context.createGain();
@@ -378,6 +383,19 @@ class ListeningAudio {
     }
   }
 
+  // The room spends three and a half minutes teaching the visitor to hear
+  // what is there. Once, it takes all of it away.
+  openHole(amount) {
+    if (this.mode === "media") {
+      this.holeAmount = amount;
+      return;
+    }
+    if (!this.hole || !this.context) return;
+    const level = Math.max(.012, 1 - amount * .988);
+    this.hole.gain.setTargetAtTime(level, this.context.currentTime, amount > (this.lastHole ?? 0) ? .09 : .5);
+    this.lastHole = amount;
+  }
+
   update(now, quiet, movement, place) {
     if (!this.playing || (this.mode !== "buffer" && this.mode !== "media")) return;
     if (now - this.lastUpdate <= 90) return;
@@ -388,8 +406,9 @@ class ListeningAudio {
     const depthLevel = (.012 + quiet ** 1.12 * .82) * (1 - motion * .9);
 
     if (this.mode === "media") {
-      this.nearTrack.volume = clamp(nearLevel, .08, .9);
-      this.depthTrack.volume = clamp(depthLevel, .004, .9);
+      const open = 1 - (this.holeAmount ?? 0) * .988;
+      this.nearTrack.volume = clamp(nearLevel * open, .002, .9);
+      this.depthTrack.volume = clamp(depthLevel * open, .002, .9);
       return;
     }
 
@@ -525,6 +544,21 @@ function updateListeningState(now) {
   }
 }
 
+// Two minutes and twelve seconds in, everything stops for two and a half
+// seconds. Nothing is added in the hole; the room simply takes back what the
+// visitor had stopped noticing was there.
+const HOLE_AT = 132_000;
+const HOLE_LENGTH = 6_400;
+let hollow = 0;
+
+function holeShape(elapsed) {
+  const amount = (elapsed - HOLE_AT) / HOLE_LENGTH;
+  if (amount <= 0 || amount >= 1) return 0;
+  if (amount < .06) return amount / .06;
+  if (amount < .45) return 1;
+  return Math.max(0, 1 - (amount - .45) / .55) ** .8;
+}
+
 function drawField(time) {
   const movementTime = reducedMotion ? 0 : time;
   const motion = smoothstep(.06, .34, activity);
@@ -603,6 +637,23 @@ function drawField(time) {
   fieldContext.arc(nearX, nearY, nearRadius, 0, Math.PI * 2);
   fieldContext.fill();
   fieldContext.restore();
+
+  // The picture empties with the sound, so the visitor is not told that
+  // something was removed — they are left in the place where it was.
+  if (hollow > 0) {
+    fieldContext.save();
+    fieldContext.fillStyle = `rgba(6,9,13,${hollow * .93})`;
+    fieldContext.fillRect(0, 0, width, height);
+    const trace = fieldContext.createRadialGradient(
+      width * .5, horizon, 0,
+      width * .5, horizon, Math.min(width, height) * .5
+    );
+    trace.addColorStop(0, `rgba(150,168,178,${(1 - hollow) * .05 + .012})`);
+    trace.addColorStop(1, "rgba(6,9,13,0)");
+    fieldContext.fillStyle = trace;
+    fieldContext.fillRect(0, 0, width, height);
+    fieldContext.restore();
+  }
 }
 
 function finish() {
@@ -618,12 +669,16 @@ function finish() {
 function animate(now) {
   if (!running) return;
   updateListeningState(now);
-  listeningAudio.update(now, stillness, activity, position);
-  drawField(now);
 
   const elapsed = listeningAudio.playing && listeningAudio.currentTime > 0
     ? listeningAudio.currentTime * 1_000
     : now - startTime;
+
+  hollow = holeShape(elapsed);
+  listeningAudio.openHole(hollow);
+  listeningAudio.update(now, stillness, activity, position);
+  drawField(now);
+
   if (elapsed >= ENDING_AT) {
     finish();
     return;

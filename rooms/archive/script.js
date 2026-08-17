@@ -229,17 +229,26 @@ function frame(now) {
 
   context.clearRect(0, 0, width, height);
 
-  if (now >= nextSurfacing && active.length < AT_ONCE && pool.length) {
+  // The emptier the archive, the less it can afford to wait. What is left
+  // comes faster and fainter, until the last fragment is alone.
+  const left = pool.reduce((sum, entry) => sum + entry.s, 0);
+  const fullness = Math.max(0, Math.min(1, left / (SOURCES.garden.length * 3)));
+  const haste = .3 + fullness * .7;
+  const alone = pool.length <= 1;
+
+  if (now >= nextSurfacing && active.length < (alone ? 1 : AT_ONCE) && pool.length) {
     surface(now);
-    nextSurfacing = now + 2_600 + Math.random() * 1_900;
+    nextSurfacing = now + (alone ? 5_200 : (2_600 + Math.random() * 1_900) * haste);
   }
 
   const remaining = [];
 
   for (const item of active) {
     const age = now - item.born;
-    const hold = HOLD + (item.held ? HELD_HOLD : 0);
-    const lifetime = FADE_IN + hold + FADE_OUT;
+    // The last one is given the time the others were not.
+    const hold = HOLD + (item.held ? HELD_HOLD : 0) + (alone ? 7_400 : 0);
+    const leaving = alone ? FADE_OUT * 2.2 : FADE_OUT;
+    const lifetime = FADE_IN + hold + leaving;
 
     if (age >= lifetime) {
       retire(item);
@@ -250,7 +259,7 @@ function frame(now) {
       ? age / FADE_IN
       : age < FADE_IN + hold
         ? 1
-        : 1 - (age - FADE_IN - hold) / FADE_OUT;
+        : 1 - (age - FADE_IN - hold) / leaving;
 
     if (!reducedMotion) item.x += item.drift * 16;
 

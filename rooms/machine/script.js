@@ -27,6 +27,12 @@ const LOOP = 9.6;
 const SUBDIVISIONS = 8;
 const TAU = Math.PI * 2;
 
+// A mechanism that only ever runs correctly is a diagram. Every so often this
+// one catches: a note refuses, the rotor loses the beat, and the lattice has
+// to find itself again before the loop closes.
+const SLIP_EVERY = 74_000;
+const SLIP_LENGTH = 4_200;
+
 // Every room in the house, so the count of traces is a fact and not a guess.
 const HOUSE = [
   "conversation",
@@ -55,6 +61,9 @@ let hasAltered = false;
 let instructionState = "alter";
 let drag = null;
 let audio = null;
+let slip = 0;
+let slipSlot = -1;
+let slipAnnounced = false;
 
 const flares = Array.from({ length: SLOTS }, () => 0);
 
@@ -313,9 +322,22 @@ function nodePoint(index, { centreX, centreY, radius, step }) {
   };
 }
 
+// The rotor does not stop during a slip; it drags, and then catches up, so the
+// loop still closes where it should.
 function phaseNow(time = performance.now()) {
   if (!running) return 0;
-  return ((time - startedAt) / 1000 % LOOP) / LOOP;
+  const since = (time - startedAt) / 1000;
+  const dragged = slip > 0 ? since - Math.sin(slip * Math.PI) * .42 : since;
+  return ((dragged % LOOP) + LOOP) % LOOP / LOOP;
+}
+
+function slipNow(time = performance.now()) {
+  if (!running) return 0;
+  const since = time - startedAt;
+  if (since < SLIP_EVERY) return 0;
+  const into = (since - SLIP_EVERY) % SLIP_EVERY;
+  if (into >= SLIP_LENGTH) return 0;
+  return Math.sin((into / SLIP_LENGTH) * Math.PI) ** .8;
 }
 
 function draw(phase) {
@@ -325,11 +347,14 @@ function draw(phase) {
   context.clearRect(0, 0, width, height);
 
   // The lattice the notes stand on: one ring for every degree of the scale.
+  // While the mechanism is slipping the rings lose their spacing and have to
+  // find it again.
+  const shiver = slip > 0 ? Math.sin(performance.now() * .019) * slip : 0;
   for (let degree = 0; degree < SCALE.length; degree++) {
-    const distance = radius + degree * step;
+    const distance = radius + degree * step + shiver * step * (degree % 3 - 1) * .8;
     context.beginPath();
-    context.arc(centreX, centreY, distance, 0, TAU);
-    context.strokeStyle = `rgba(140,166,176,${degree === 0 ? .16 : .045})`;
+    context.arc(centreX, centreY, Math.max(2, distance), 0, TAU);
+    context.strokeStyle = `rgba(140,166,176,${(degree === 0 ? .16 : .045) * (1 + slip * 1.4)})`;
     context.lineWidth = 1;
     context.stroke();
   }
@@ -416,15 +441,20 @@ function draw(phase) {
     }
 
     const size = chosen ? 5.4 : 4.2;
+    const refusing = slip > .35 && index === slipSlot;
     context.beginPath();
     context.rect(point.x - size, point.y - size, size * 2, size * 2);
     context.fillStyle = `rgba(7,9,12,.9)`;
     context.fill();
-    context.strokeStyle = chosen
-      ? `rgba(112,225,209,${.6 + flare * .4})`
-      : `rgba(219,228,232,${.4 + flare * .6})`;
+    if (refusing) context.setLineDash([2.4, 3.2]);
+    context.strokeStyle = refusing
+      ? `rgba(241,182,110,${.4 + slip * .4})`
+      : chosen
+        ? `rgba(112,225,209,${.6 + flare * .4})`
+        : `rgba(219,228,232,${.4 + flare * .6})`;
     context.lineWidth = chosen ? 1.5 : 1;
     context.stroke();
+    context.setLineDash([]);
 
     const outward = radius + seed[index] * step + 20;
     const labelX = centreX + Math.cos(point.angle) * outward;
@@ -440,6 +470,14 @@ function draw(phase) {
 }
 
 function fire(index) {
+  // During a slip one note will not sound. It is still struck; it simply does
+  // not arrive, and the visitor hears the gap where it was.
+  if (slip > .35 && index === slipSlot) {
+    flares[index] = .28;
+    needsDraw = true;
+    return;
+  }
+
   flares[index] = 1;
   if (audio) audio.strike(frequencyOf(seed[index]), PANS[index]);
   needsDraw = true;
@@ -447,6 +485,23 @@ function fire(index) {
 
 function frame(now) {
   if (!running) return;
+
+  const wasSlipping = slip > 0;
+  slip = slipNow(now);
+  if (slip > 0 && !wasSlipping) {
+    slipSlot = Math.floor(Math.random() * SLOTS);
+    slipAnnounced = false;
+  }
+  if (slip > 0) needsDraw = true;
+  if (slip > .5 && !slipAnnounced) {
+    slipAnnounced = true;
+    announce(`The mechanism catches. Note ${slipSlot + 1} does not sound.`);
+  }
+  if (slip === 0 && wasSlipping) {
+    announce("The mechanism has found the beat again.");
+    needsDraw = true;
+  }
+
   const phase = phaseNow(now);
   const slot = Math.floor(phase * SLOTS) % SLOTS;
   const subdivision = Math.floor(phase * SUBDIVISIONS) % SUBDIVISIONS;

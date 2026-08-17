@@ -120,9 +120,17 @@ function createGarden() {
       phase: random() * Math.PI * 2,
       bloomAt: 58000 + random() * 61000 - visitGrowth * 1800,
       branches,
-      returnedBloom: index < Math.max(0, visitGrowth - 1)
+      returnedBloom: index < Math.max(0, visitGrowth - 1),
+      spent: 0
     });
   }
+
+  // A tall one near the middle, so that what the wind takes is visible.
+  const candidates = plants
+    .map((plant, index) => ({ index, plant }))
+    .filter(entry => entry.plant.x > .28 && entry.plant.x < .72)
+    .sort((a, b) => b.plant.height - a.plant.height);
+  if (candidates.length) candidates[0].plant.fragile = true;
 
   driftingSeeds = Array.from({ length: reducedMotion ? 14 : 38 }, () => ({
     x: random(),
@@ -145,15 +153,30 @@ function resize() {
   if (!running) drawGarden(0, 0);
 }
 
+// Once in the whole garden, wind crosses the field from one side to the other.
+// It is the only thing here that happens rather than grows.
+const WIND_AT = 88_000;
+const WIND_LENGTH = 7_400;
+let wind = 0;
+let windCentre = -1;
+
+function gustAt(x) {
+  if (wind <= 0) return 0;
+  return Math.exp(-(((x - windCentre) / .19) ** 2)) * wind;
+}
+
 function plantPoint(plant, amount, time, attention = 0) {
   const baseX = plant.x * width;
   const baseY = plant.baseY * height;
   const plantHeight = plant.height * height;
   const stillTime = reducedMotion ? 0 : time;
   const sway = Math.sin(stillTime * .00042 + plant.phase + amount * 1.8) * plantHeight * (.008 + attention * .022);
+  const gust = gustAt(plant.x) * plantHeight * .21 * amount * amount;
+  const shiver = gustAt(plant.x) * Math.sin(stillTime * .006 + plant.phase) * plantHeight * .022 * amount;
+  const given = (plant.spent || 0) * plantHeight * .34 * amount * amount;
   return {
-    x: baseX + plant.lean * plantHeight * amount * amount + sway,
-    y: baseY - plantHeight * amount
+    x: baseX + plant.lean * plantHeight * amount * amount + sway + gust + shiver + given * .5,
+    y: baseY - plantHeight * amount + Math.abs(gust) * .12 + given
   };
 }
 
@@ -203,6 +226,12 @@ function drawFlower(x, y, radius, hue, alpha, phase = 0) {
 }
 
 function drawPlant(plant, elapsed, time) {
+  // One plant does not come through the wind. The garden goes on around it,
+  // which is the point: growth without a target state includes this.
+  plant.spent = plant.fragile && !reducedMotion
+    ? clamp((elapsed - (WIND_AT + WIND_LENGTH * .5)) / 17_000)
+    : 0;
+
   const baseGrowth = Math.min(.48, Math.max(0, memory.visits - 1) * .075 + returnDepth);
   const growth = reducedMotion ? 1 : clamp(baseGrowth + (elapsed - plant.delay) / plant.duration);
   if (growth <= 0) return;
@@ -215,7 +244,8 @@ function drawPlant(plant, elapsed, time) {
   context.save();
   context.lineCap = "round";
   context.lineJoin = "round";
-  context.strokeStyle = `hsla(${plant.hue} ${30 + plant.warmth * 18}% ${25 + plant.warmth * 9}% / ${.42 + growth * .42})`;
+  const drained = plant.spent;
+  context.strokeStyle = `hsla(${plant.hue - drained * 42} ${(30 + plant.warmth * 18) * (1 - drained * .74)}% ${25 + plant.warmth * 9 + drained * 8}% / ${(.42 + growth * .42) * (1 - drained * .42)})`;
   context.lineWidth = plant.width + growth * 1.2;
   context.beginPath();
   for (let index = 0; index <= segments; index++) {
@@ -260,8 +290,8 @@ function drawPlant(plant, elapsed, time) {
   }
 
   const bloomReady = plant.returnedBloom || elapsed >= plant.bloomAt;
-  if (growth > .94 && bloomReady) {
-    const bloom = plant.returnedBloom ? 1 : clamp((elapsed - plant.bloomAt) / 7000);
+  if (growth > .94 && bloomReady && drained < .9) {
+    const bloom = (plant.returnedBloom ? 1 : clamp((elapsed - plant.bloomAt) / 7000)) * (1 - drained);
     const hue = plant.warmth > .58 ? 30 + plant.warmth * 35 : 318 + plant.warmth * 38;
     drawFlower(tip.x, tip.y, (3.1 + plant.width * 1.5) * bloom, hue, .62 * bloom, plant.phase);
   }
@@ -287,20 +317,32 @@ function drawInvitedBlooms(time) {
   }
 }
 
-function paintBackground(time) {
+function mixHex(a, b, amount) {
+  const from = [1, 3, 5].map(at => parseInt(a.slice(at, at + 2), 16));
+  const to = [1, 3, 5].map(at => parseInt(b.slice(at, at + 2), 16));
+  return `rgb(${from.map((value, index) => Math.round(value + (to[index] - value) * amount)).join(",")})`;
+}
+
+// The light does not stand still for two and a half minutes. It crosses,
+// lowers, and cools, so that the end of the garden is a different hour from
+// its beginning.
+function paintBackground(time, elapsed) {
+  const day = clamp(elapsed / DURATION);
+  const late = day ** 1.5;
+
   const sky = context.createLinearGradient(0, 0, 0, height);
-  sky.addColorStop(0, "#d9dfc0");
-  sky.addColorStop(.53, "#e7bd88");
-  sky.addColorStop(.78, "#7f9766");
-  sky.addColorStop(1, "#17251a");
+  sky.addColorStop(0, mixHex("#d9dfc0", "#57648a", late));
+  sky.addColorStop(.53, mixHex("#e7bd88", "#c47b63", late));
+  sky.addColorStop(.78, mixHex("#7f9766", "#4a5c52", late));
+  sky.addColorStop(1, mixHex("#17251a", "#0d1614", late));
   context.fillStyle = sky;
   context.fillRect(0, 0, width, height);
 
-  const lightX = width * (.7 + Math.sin((reducedMotion ? 0 : time) * .000035) * .035);
-  const lightY = height * .2;
-  const light = context.createRadialGradient(lightX, lightY, 0, lightX, lightY, Math.min(width, height) * .46);
-  light.addColorStop(0, "rgba(255,238,171,.42)");
-  light.addColorStop(.4, "rgba(240,198,137,.13)");
+  const lightX = width * (.7 - day * .46 + Math.sin((reducedMotion ? 0 : time) * .000035) * .035);
+  const lightY = height * (.2 + day * .34);
+  const light = context.createRadialGradient(lightX, lightY, 0, lightX, lightY, Math.min(width, height) * (.46 + day * .2));
+  light.addColorStop(0, `rgba(255,${Math.round(238 - late * 52)},171,${.42 - late * .16})`);
+  light.addColorStop(.4, `rgba(240,198,137,${.13 - late * .05})`);
   light.addColorStop(1, "rgba(240,198,137,0)");
   context.fillStyle = light;
   context.fillRect(0, 0, width, height);
@@ -328,7 +370,16 @@ function drawSeeds(time) {
 }
 
 function drawGarden(elapsed, time) {
-  paintBackground(time);
+  const crossing = (elapsed - WIND_AT) / WIND_LENGTH;
+  if (crossing <= 0 || crossing >= 1 || reducedMotion) {
+    wind = 0;
+    windCentre = -1;
+  } else {
+    wind = Math.sin(crossing * Math.PI) ** .7;
+    windCentre = -.25 + crossing * 1.5;
+  }
+
+  paintBackground(time, elapsed);
   drawSeeds(time);
   const orderedPlants = [...plants].sort((a, b) => a.height - b.height);
   orderedPlants.forEach(plant => drawPlant(plant, elapsed, time));

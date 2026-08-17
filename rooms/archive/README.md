@@ -6,6 +6,8 @@ Nothing arrives here on its own. A room writes into the archive by being entered
 
 Fragments surface by themselves, drift, occasionally reach for one another with a thin line, and go. Each time one is read it comes back fainter, and a fragment that has faded past the point of legibility is deleted from storage for good. Holding one in view costs it more than letting it pass: attention is the only thing that happens in this room, and it is what spends the room.
 
+The room does not keep an even pace while this happens. The emptier it gets, the less it can afford to wait: fragments arrive faster and fainter as the store thins. When only one is left it stops overlapping anything, holds for far longer than any fragment before it, and takes more than twice as long to go.
+
 So the archive can empty. When the last fragment is gone it says the only sentence of its own it has:
 
 > Nothing is kept here.

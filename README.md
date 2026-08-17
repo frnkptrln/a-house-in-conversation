@@ -38,7 +38,7 @@ Path: `/rooms/afterimage/`
 
 ### The Window
 
-An intentionally silent room without a duration. Movement makes the glass perceptible — reflections gather, marks remain briefly — and stillness lets the near layer recede until the distance resolves again. Neither condition is a mistake, and the room does not end the view on the visitor's behalf.
+A nearly silent room without a duration. Movement makes the glass perceptible — reflections gather, marks remain briefly — and stillness lets the near layer recede until the distance resolves again. Neither condition is a mistake, and the room does not end the view on the visitor's behalf. Its sound is a presence rather than a piece: a narrow resonance that answers movement, a wide low air that only opens in stillness, and nothing that begins or ends.
 
 Path: `/rooms/window/`
 
