@@ -10,6 +10,13 @@ const soundFallback = document.querySelector("#sound-fallback");
 
 const DURATION = 96000;
 const ENDING_AT = 87500;
+
+// The two fields spend the first half of the room approaching each other. At
+// the moment they are closest they do not merge politely: the colour neither
+// of them contained floods everything, drains away, and leaves both of them
+// marked. Nothing after that point is the colour it was before.
+const FLOOD_AT = 44500;
+const FLOOD_LENGTH = 5600;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let width = innerWidth;
@@ -21,6 +28,8 @@ let running = false;
 let endingShown = false;
 let agitation = 0;
 let thirdStrength = 0;
+let stained = 0;
+let floodPeak = 0;
 let pointer = { x: width / 2, y: height / 2, active: false, previousX: width / 2, previousY: height / 2 };
 let particles = [];
 let ripples = [];
@@ -135,6 +144,20 @@ function drawRipples(hue) {
   }
 }
 
+// Gathering, breaking, standing, and draining away. Only the drain is slow.
+function floodShape(amount) {
+  if (amount <= 0 || amount >= 1) return { gather: 0, cover: 0 };
+  const gather = amount < .17 ? amount / .17 : Math.max(0, 1 - (amount - .17) / .3);
+  const cover = amount < .17
+    ? 0
+    : amount < .28
+      ? (amount - .17) / .11
+      : amount < .44
+        ? 1
+        : Math.max(0, 1 - (amount - .44) / .56) ** 1.5;
+  return { gather, cover };
+}
+
 function frame(now) {
   if (!running) return;
   const elapsed = now - startTime;
@@ -159,18 +182,29 @@ function frame(now) {
 
   agitation *= .986;
   const clarity = Math.max(.22, 1 - agitation * .72);
-  const hueA = (348 + progress * 38) % 360;
-  const hueB = 207 + progress * 42;
-  const thirdHue = circularHue(hueA, hueB, .5) + 28 * Math.sin(progress * Math.PI);
-  const paperLightness = 93 - agitation * 20;
-  const paperSaturation = 38 * clarity;
+  const baseHueA = (348 + progress * 38) % 360;
+  const baseHueB = 207 + progress * 42;
+  const thirdHue = circularHue(baseHueA, baseHueB, .5) + 28 * Math.sin(progress * Math.PI);
 
-  ctx.fillStyle = hsl(38, paperSaturation, paperLightness, .19);
+  const flood = floodShape((elapsed - FLOOD_AT) / FLOOD_LENGTH);
+  floodPeak = Math.max(floodPeak, flood.cover);
+  // What the flood leaves behind does not wash out again.
+  stained = Math.max(stained, floodPeak);
+
+  // Both fields keep some of the colour that neither of them held.
+  const hueA = circularHue(baseHueA, thirdHue, stained * .26);
+  const hueB = circularHue(baseHueB, thirdHue, stained * .26);
+  const marked = 1 - stained * .16;
+  const paperLightness = 93 - agitation * 20 - stained * 5 - flood.gather * 7;
+  const paperSaturation = (38 + stained * 16) * clarity;
+  const paperHue = circularHue(38, thirdHue, stained * .3);
+
+  ctx.fillStyle = hsl(paperHue, paperSaturation, paperLightness, .19);
   ctx.fillRect(0, 0, width, height);
 
-  const radius = Math.min(width, height) * (.29 + meeting * .08);
-  paintBlob(sourceA.x, sourceA.y, radius, hueA, 88 * clarity, 57, .72, now, 0);
-  paintBlob(sourceB.x, sourceB.y, radius, hueB, 86 * clarity, 55, .68, now, 1.7);
+  const radius = Math.min(width, height) * (.29 + meeting * .08 + flood.gather * .05);
+  paintBlob(sourceA.x, sourceA.y, radius, hueA, 88 * clarity * marked, 57, .72, now, 0);
+  paintBlob(sourceB.x, sourceB.y, radius, hueB, 86 * clarity * marked, 55, .68, now, 1.7);
   const relation = measureRelation();
 
   thirdStrength += (relation.closeness - thirdStrength) * .018;
@@ -179,6 +213,35 @@ function frame(now) {
   }
   drawParticles(clarity);
   drawRipples(thirdHue);
+
+  // The break itself: everything the two of them made, all at once, over the
+  // whole room, and then gone.
+  if (flood.gather > 0 || flood.cover > 0) {
+    const middleX = relation.middleX || width / 2;
+    const middleY = relation.middleY || height / 2;
+    const diagonal = Math.hypot(width, height);
+
+    if (flood.gather > 0 && flood.cover < 1) {
+      const gathering = ctx.createRadialGradient(
+        middleX, middleY, 0,
+        middleX, middleY, Math.min(width, height) * (.1 + flood.gather * .22)
+      );
+      gathering.addColorStop(0, hsl(thirdHue, 96, 68, .5 * flood.gather));
+      gathering.addColorStop(1, hsl(thirdHue, 96, 68, 0));
+      ctx.fillStyle = gathering;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    if (flood.cover > 0) {
+      const reach = diagonal * Math.min(1, flood.cover * 1.6) ** .7;
+      const wash = ctx.createRadialGradient(middleX, middleY, 0, middleX, middleY, Math.max(1, reach));
+      wash.addColorStop(0, hsl(thirdHue, 92, 72, .97 * flood.cover));
+      wash.addColorStop(.72, hsl(thirdHue, 95, 66, .93 * flood.cover));
+      wash.addColorStop(1, hsl(thirdHue, 95, 60, 0));
+      ctx.fillStyle = wash;
+      ctx.fillRect(0, 0, width, height);
+    }
+  }
 
   if (elapsed >= ENDING_AT && !endingShown) {
     endingShown = true;
@@ -194,6 +257,8 @@ async function begin() {
   ripples = [];
   agitation = 0;
   thirdStrength = 0;
+  stained = 0;
+  floodPeak = 0;
   endingShown = false;
   pointer.active = false;
   sourceA = { x: width * .27, y: height * .48 };
