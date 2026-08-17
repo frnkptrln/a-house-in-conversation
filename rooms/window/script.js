@@ -4,6 +4,7 @@ const room = document.querySelector("#room");
 const canvas = document.querySelector("#window-field");
 const context = canvas.getContext("2d");
 const enter = document.querySelector("#enter");
+const soundControl = document.querySelector("#sound");
 const windowStatus = document.querySelector("#window-status");
 
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -108,6 +109,139 @@ const dust = Array.from({ length: 34 }, () => ({
   radius: .3 + random() * .85,
   phase: random() * Math.PI * 2
 }));
+
+// The room still has no music, no melody, and no seed. What it has is the
+// sound the view itself would make: glass answering movement, and a wide low
+// air that only opens once nothing is being done to it. Both are built from
+// noise at the runtime, neither begins or ends, and the loudest of them sits
+// far below any of the compositions in the other rooms.
+class WindowAir {
+  constructor() {
+    this.context = null;
+    this.master = null;
+    this.glass = null;
+    this.distance = null;
+    this.muted = false;
+    this.grain = null;
+  }
+
+  noiseBuffer(seconds, smoothing) {
+    const buffer = this.context.createBuffer(1, this.context.sampleRate * seconds, this.context.sampleRate);
+    const samples = buffer.getChannelData(0);
+    let previous = 0;
+    for (let index = 0; index < samples.length; index++) {
+      previous = previous * smoothing + (Math.random() * 2 - 1) * (1 - smoothing);
+      samples[index] = previous;
+    }
+    return buffer;
+  }
+
+  bed(buffer, filter, gain) {
+    const source = this.context.createBufferSource();
+    const level = this.context.createGain();
+    source.buffer = buffer;
+    source.loop = true;
+    level.gain.value = 0;
+    source.connect(filter).connect(level).connect(this.master);
+    source.start();
+    return { source, level, gain };
+  }
+
+  async start() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      soundControl.hidden = true;
+      return false;
+    }
+
+    this.context = new AudioContext();
+    const resume = this.context.resume();
+
+    this.master = this.context.createGain();
+    this.master.gain.value = .0001;
+    this.master.connect(this.context.destination);
+
+    // The distance: wide, low, and slow. It belongs to stillness.
+    const far = this.context.createBiquadFilter();
+    far.type = "lowpass";
+    far.frequency.value = 260;
+    far.Q.value = .5;
+    this.distance = this.bed(this.noiseBuffer(6, .992), far, .05);
+
+    const swell = this.context.createOscillator();
+    const swellDepth = this.context.createGain();
+    swell.frequency.value = .021;
+    swellDepth.gain.value = 74;
+    swell.connect(swellDepth).connect(far.frequency);
+    swell.start();
+
+    // The glass: narrow, high, and tactile. It belongs to movement.
+    const near = this.context.createBiquadFilter();
+    near.type = "bandpass";
+    near.frequency.value = 2_950;
+    near.Q.value = 4.2;
+    this.glass = this.bed(this.noiseBuffer(4, .55), near, .022);
+
+    this.grain = this.noiseBuffer(.3, .3);
+
+    try {
+      await resume;
+    } catch (error) {
+      return false;
+    }
+    if (this.context.state !== "running") return false;
+    this.fadeTo(this.muted ? .0001 : .8, 5.5);
+    return true;
+  }
+
+  fadeTo(value, duration) {
+    if (!this.context || !this.master) return;
+    const now = this.context.currentTime;
+    this.master.gain.cancelScheduledValues(now);
+    this.master.gain.setValueAtTime(Math.max(.0001, this.master.gain.value), now);
+    this.master.gain.exponentialRampToValueAtTime(Math.max(.0001, value), now + duration);
+  }
+
+  // Driven by the same two numbers the picture is drawn from, so the room
+  // cannot sound like one thing while it looks like another.
+  follow(clarityNow, movementNow) {
+    if (!this.context || this.context.state !== "running") return;
+    const now = this.context.currentTime;
+    const open = Math.max(0, Math.min(1, clarityNow));
+    const touched = Math.max(0, Math.min(1, movementNow));
+
+    this.distance.level.gain.setTargetAtTime(this.distance.gain * (.24 + open * .76), now, 1.4);
+    this.glass.level.gain.setTargetAtTime(this.glass.gain * (1 - open) * (.3 + touched * .7), now, .28);
+  }
+
+  // A mark on the glass, at the edge of being there at all.
+  mark(strength) {
+    if (!this.context || this.context.state !== "running" || !this.grain) return;
+    const now = this.context.currentTime + .005;
+    const source = this.context.createBufferSource();
+    const ring = this.context.createBiquadFilter();
+    const level = this.context.createGain();
+    source.buffer = this.grain;
+    ring.type = "bandpass";
+    ring.frequency.setValueAtTime(2_300 + Math.random() * 1_900, now);
+    ring.Q.value = 9;
+    level.gain.setValueAtTime(.0001, now);
+    level.gain.exponentialRampToValueAtTime(.004 + strength * .008, now + .01);
+    level.gain.exponentialRampToValueAtTime(.0001, now + .34);
+    source.connect(ring).connect(level).connect(this.master);
+    source.start(now);
+    source.stop(now + .38);
+  }
+
+  toggle() {
+    this.muted = !this.muted;
+    if (!this.muted && this.context?.state === "suspended") this.context.resume();
+    this.fadeTo(this.muted ? .0001 : .8, 1.3);
+    return this.muted;
+  }
+}
+
+let air = null;
 
 function rememberVisit() {
   try {
@@ -462,6 +596,7 @@ function frame(now) {
 
   drawScene(now);
   updateExperience(now);
+  if (air) air.follow(clarity, movement);
   lastFrame = now;
   animationFrame = requestAnimationFrame(frame);
 }
@@ -489,8 +624,24 @@ function begin() {
   lastFrame = startedAt;
   lastTrace = 0;
   canvas.focus({ preventScroll: true });
+
+  air = new WindowAir();
+  air.start().then(started => {
+    if (started) return;
+    air.muted = true;
+    soundControl.textContent = "listen";
+    soundControl.setAttribute("aria-pressed", "true");
+  });
+
   animationFrame = requestAnimationFrame(frame);
 }
+
+soundControl.addEventListener("click", () => {
+  if (!air) return;
+  const muted = air.toggle();
+  soundControl.textContent = muted ? "listen" : "silence";
+  soundControl.setAttribute("aria-pressed", String(muted));
+});
 
 function pointFromEvent(event) {
   const rect = canvas.getBoundingClientRect();
@@ -503,6 +654,7 @@ function pointFromEvent(event) {
 function addTrace(point, now, strength) {
   if (now - lastTrace < 78) return;
   lastTrace = now;
+  if (air) air.mark(strength);
   const phase = point.x * Math.PI * 3 + point.y * Math.PI * 2;
   traces.push({
     x: point.x * width,
@@ -583,6 +735,7 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     hiddenAt = performance.now();
     cancelAnimationFrame(animationFrame);
+    if (air?.context) air.context.suspend();
     return;
   }
   const now = performance.now();
@@ -591,6 +744,7 @@ document.addEventListener("visibilitychange", () => {
   lastMovement += hiddenFor;
   for (const trace of traces) trace.createdAt += hiddenFor;
   lastFrame = now;
+  if (air?.context && !air.muted) air.context.resume();
   animationFrame = requestAnimationFrame(frame);
 });
 
