@@ -30,6 +30,7 @@
         <a href="rooms/afterimage/">afterimage</a>
         <a href="rooms/window/">window</a>
         <a href="rooms/machine/">machine</a>
+        <a href="rooms/archive/">archive</a>
       </nav>
 
       <nav class="rooms" aria-label="Rooms in the house">
@@ -67,6 +68,11 @@
           <span class="aperture" aria-hidden="true"></span>
           <span class="room-name">the machine room</span>
         </a>
+
+        <a class="room room-archive" data-room="archive" href="rooms/archive/">
+          <span class="aperture" aria-hidden="true"></span>
+          <span class="room-name">the archive</span>
+        </a>
       </nav>
 
       <div class="unformed" aria-hidden="true">
@@ -74,7 +80,7 @@
       </div>
 
       <button id="sound" class="sound" type="button" aria-pressed="false">silence</button>
-      <p id="house-status" class="visually-hidden" aria-live="polite">Seven rooms are open.</p>
+      <p id="house-status" class="visually-hidden" aria-live="polite">Eight rooms are open.</p>
     </section>
   </main>
 
@@ -87,6 +93,7 @@
       <a href="rooms/afterimage/">The Afterimage</a>
       <a href="rooms/window/">The Window</a>
       <a href="rooms/machine/">The Machine Room</a>
+      <a href="rooms/archive/">The Archive</a>
     </nav>
   </noscript>
   <audio id="threshold-track" src="audio/threshold.m4a" preload="metadata" playsinline loop></audio>

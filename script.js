@@ -85,6 +85,13 @@ const atmospheres = {
       { colour: "112,225,209", radius: .72, strength: .58, trace: .2, ax: 3, sx: .00013, ay: 4, sy: .00011 },
       { colour: "140,166,176", radius: 1.44, strength: .34, trace: .14, ax: -5, sx: .00006, ay: -4, sy: .00008 }
     ]
+  },
+  archive: {
+    lean: 560,
+    fields: [
+      { colour: "184,173,156", radius: 1.58, strength: .44, trace: .16, ax: 9, sx: .00005, ay: 7, sy: .00007 },
+      { colour: "140,122,96", radius: 1.22, strength: .3, trace: .12, ax: -6, sx: .00007, ay: -8, sy: .00005 }
+    ]
   }
 };
 

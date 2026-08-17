@@ -35,7 +35,8 @@ const HOUSE = [
   "listening",
   "afterimage",
   "window",
-  "machine"
+  "machine",
+  "archive"
 ];
 
 let seed = readSeed();
