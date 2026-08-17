@@ -152,6 +152,20 @@ if (houseComplete) {
 // How near each room stands. The five rooms that hold a piece are close and
 // move with the pointer; the three that have no duration lie further back and
 // barely move at all.
+// Crossing is an event, not a fade. The rooms arrive in the order the house
+// grew, one after another, while the seed is struck all at once underneath.
+const ARRIVAL = ["conversation", "colour", "garden", "listening", "afterimage", "window", "machine", "archive"];
+const ARRIVAL_STEP = 115;
+const ARRIVAL_RISE = 540;
+let crossingAt = 0;
+
+function arrivalOf(name) {
+  if (!crossingAt) return 1;
+  const index = Math.max(0, ARRIVAL.indexOf(name));
+  const since = performance.now() - crossingAt - index * ARRIVAL_STEP;
+  return Math.max(0, Math.min(1, since / ARRIVAL_RISE));
+}
+
 const depths = {
   conversation: 1,
   colour: .92,
@@ -299,6 +313,7 @@ function draw(time) {
       radius: Math.min(rect.w, rect.h) * .42
     };
     const trace = visits[name] ? 1 : 0;
+    const arrived = arrivalOf(name);
     houseX += centre.x;
     houseY += centre.y;
     counted++;
@@ -309,11 +324,11 @@ function draw(time) {
         centre.y + Math.cos(movementTime * field.sy) * field.ay,
         centre.radius * field.radius,
         field.colour,
-        energy * field.strength + trace * field.trace
+        (energy * field.strength + trace * field.trace) * arrived
       );
     }
 
-    drawn.push({ name, box: apertureRect(rect, offsetX, offsetY) });
+    drawn.push({ name, box: apertureRect(rect, offsetX, offsetY), arrived });
   }
 
   if (counted) {
@@ -336,6 +351,22 @@ function draw(time) {
     paintField(pointer.x, pointer.y, 80 + pulse * 85, "112,225,209", (.16 + pulse * .24) * withdraw);
   }
 
+  // The shock of the crossing: one ring leaving the middle of the house and
+  // running out past its edges.
+  if (crossingAt && counted) {
+    const since = (performance.now() - crossingAt) / 1_150;
+    if (since >= 1) crossingAt = 0;
+    else {
+      const spread = since ** .58;
+      const reach = Math.max(width, height) * .85 * spread;
+      context.beginPath();
+      context.arc(houseX / counted, houseY / counted, reach, 0, Math.PI * 2);
+      context.strokeStyle = `rgba(150,236,224,${(1 - since) ** 2.1 * .5})`;
+      context.lineWidth = Math.max(1, 26 * (1 - since) ** 1.6);
+      context.stroke();
+    }
+  }
+
   context.fillStyle = `rgba(236,234,244,${.035 * energy})`;
   for (const mote of motes) {
     const x = mote.x * width + Math.sin(movementTime * .0001 + mote.phase) * (12 + pulse * 20);
@@ -353,12 +384,24 @@ function draw(time) {
   if (repaint) miniaturesPaintedAt = time;
 
   for (const room of drawn) {
-    if (room.box.w < 8 || room.box.h < 8) continue;
-    const buffer = repaint
+    if (room.box.w < 8 || room.box.h < 8 || room.arrived <= 0) continue;
+    const buffer = repaint || room.arrived < 1
       ? paintMiniature(room.name, room.box, movementTime, Math.max(0, Math.min(1, energy)))
       : buffers.get(room.name);
     if (!buffer) continue;
-    context.drawImage(buffer.canvas, room.box.x, room.box.y, room.box.w, room.box.h);
+
+    // Arriving rooms open from slightly under their own size.
+    const opening = room.arrived < 1 ? .93 + room.arrived * .07 : 1;
+    const inset = (1 - opening) / 2;
+    context.globalAlpha = room.arrived;
+    context.drawImage(
+      buffer.canvas,
+      room.box.x + room.box.w * inset,
+      room.box.y + room.box.h * inset,
+      room.box.w * opening,
+      room.box.h * opening
+    );
+    context.globalAlpha = 1;
   }
 
   if (!reducedMotion) animationFrame = requestAnimationFrame(draw);
@@ -578,6 +621,49 @@ class ThresholdAudio {
     return this.muted;
   }
 
+  // The house's first act. The seed is not spelled out here but struck whole,
+  // with a low weight under it, at the moment the threshold is crossed.
+  arrive() {
+    if (this.preferNative || !this.context || !this.filter) return;
+    const now = this.context.currentTime + .03;
+    const pans = [-.4, .34, -.14, .26];
+
+    readSeed().forEach((degree, index) => {
+      const frequency = SEED_ROOT * Math.pow(2, SEED_SCALE[degree] / 12);
+      const oscillator = this.context.createOscillator();
+      const gain = this.context.createGain();
+      const panner = this.context.createStereoPanner ? this.context.createStereoPanner() : null;
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, now);
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(.03, now + .05);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + 4.4);
+
+      if (panner) {
+        panner.pan.setValueAtTime(pans[index], now);
+        oscillator.connect(gain).connect(panner).connect(this.master);
+      } else {
+        oscillator.connect(gain).connect(this.master);
+      }
+
+      oscillator.start(now);
+      oscillator.stop(now + 4.5);
+    });
+
+    const weight = this.context.createOscillator();
+    const weightGain = this.context.createGain();
+    weight.type = "sine";
+    weight.frequency.setValueAtTime(61.74, now);
+    weight.frequency.exponentialRampToValueAtTime(41.2, now + 1.3);
+    weightGain.gain.setValueAtTime(.0001, now);
+    weightGain.gain.exponentialRampToValueAtTime(.075, now + .04);
+    weightGain.gain.exponentialRampToValueAtTime(.0001, now + 1.6);
+    weight.connect(weightGain).connect(this.master);
+    weight.start(now);
+    weight.stop(now + 1.7);
+  }
+
   // The house's last act is to say the seed once, all the way through, while
   // it goes quiet underneath.
   farewell() {
@@ -647,7 +733,15 @@ function revealRooms({ withSound = false } = {}) {
 
 async function crossThreshold() {
   history.replaceState(null, "", "#rooms");
-  await revealRooms({ withSound: true });
+
+  if (!reducedMotion) {
+    crossingAt = performance.now();
+    threshold.dataset.crossing = "yes";
+    window.setTimeout(() => delete threshold.dataset.crossing, 2_200);
+  }
+
+  const started = await revealRooms({ withSound: true });
+  if (started) thresholdAudio.arrive();
 }
 
 function chooseRoom(event) {

@@ -102,6 +102,43 @@
   font-size: clamp(.55rem, .76vw, .68rem);
 }
 
+/* Crossing. The rooms do not fade up together; they arrive one after another
+   in the order the house grew, and each one is named a moment after it is
+   there. The canvas fades the picture, this fades the edge and the word. */
+@keyframes arrive {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* The title leaves at the speed of the strike, not at the old fade, so the
+   rooms are not arriving underneath it. */
+[data-crossing="yes"] .arrival { transition: opacity .8s ease, visibility .8s; }
+
+[data-crossing="yes"] .room { animation: arrive .62s ease backwards; }
+[data-crossing="yes"] .room-name { animation: arrive .9s ease backwards; }
+
+[data-crossing="yes"] .room-conversation { animation-delay: 0s; }
+[data-crossing="yes"] .room-colour { animation-delay: .115s; }
+[data-crossing="yes"] .room-garden { animation-delay: .23s; }
+[data-crossing="yes"] .room-listening { animation-delay: .345s; }
+[data-crossing="yes"] .room-afterimage { animation-delay: .46s; }
+[data-crossing="yes"] .room-window { animation-delay: .575s; }
+[data-crossing="yes"] .room-machine { animation-delay: .69s; }
+[data-crossing="yes"] .room-archive { animation-delay: .805s; }
+
+[data-crossing="yes"] .room-conversation .room-name { animation-delay: .42s; }
+[data-crossing="yes"] .room-colour .room-name { animation-delay: .535s; }
+[data-crossing="yes"] .room-garden .room-name { animation-delay: .65s; }
+[data-crossing="yes"] .room-listening .room-name { animation-delay: .765s; }
+[data-crossing="yes"] .room-afterimage .room-name { animation-delay: .88s; }
+[data-crossing="yes"] .room-window .room-name { animation-delay: .995s; }
+[data-crossing="yes"] .room-machine .room-name { animation-delay: 1.11s; }
+[data-crossing="yes"] .room-archive .room-name { animation-delay: 1.225s; }
+
+[data-crossing="yes"] .house-nav,
+[data-crossing="yes"] .sound,
+[data-crossing="yes"] .leave { animation: arrive 1s ease 1.15s backwards; }
+
 /* A house that can be entered and never left is not a house. Once every room
    has left a trace, the threshold offers the other gesture.
 
