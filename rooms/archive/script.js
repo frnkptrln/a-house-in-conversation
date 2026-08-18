@@ -130,9 +130,9 @@ function readSeed() {
       && stored.every(degree => Number.isInteger(degree) && degree >= 0 && degree < SEED_SCALE.length);
     if (usable) return stored;
   } catch (error) {
-    // The archive hums the house's own seed when nothing is stored.
+    // The archive hums what time has made of the seed when nothing is stored.
   }
-  return SEED_DEFAULT;
+  return typeof agedSeed === "function" ? agedSeed() : SEED_DEFAULT;
 }
 
 // A room writes into the archive by being entered. Nothing arrives here that

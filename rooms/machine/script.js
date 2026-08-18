@@ -21,7 +21,12 @@ const ROOT = 329.63;
 const SCALE = [0, 2, 4, 5, 7, 9, 11, 12, 14];
 const NAMES = ["E", "F♯", "G♯", "A", "B", "C♯", "D♯", "E′", "F♯′"];
 const SLOTS = 4;
-const DEFAULT_SEED = [0, 4, 1, 3];
+// What the house wrote in July 2026, and what time has since made of it. The
+// mechanism runs on the second; the first is kept so the distance between
+// them stays readable. "Forgetting" returns the seed to time's version, not
+// to the origin — the house cannot be reset to a day that has passed.
+const ORIGINAL_SEED = [0, 4, 1, 3];
+const DEFAULT_SEED = typeof agedSeed === "function" ? agedSeed() : ORIGINAL_SEED.slice();
 const PANS = [-.4, .3, -.16, .36];
 const LOOP = 9.6;
 const SUBDIVISIONS = 8;
@@ -90,7 +95,7 @@ function isDefaultSeed() {
 
 function writeSeed() {
   try {
-    // Returning the seed to the form the house wrote leaves nothing behind.
+    // Returning the seed to time's version leaves nothing of the visitor behind.
     if (isDefaultSeed()) localStorage.removeItem("house-seed");
     else localStorage.setItem("house-seed", JSON.stringify(seed));
   } catch (error) {
@@ -125,10 +130,18 @@ function describeSeed() {
   return seed.map(degree => NAMES[degree]).join(" · ");
 }
 
+const writtenReadout = document.querySelector("#readout-written");
+
 function refreshReadout() {
   const altered = !isDefaultSeed();
+  const driftSteps = typeof seedDriftSteps === "function" ? seedDriftSteps() : 0;
   seedReadout.textContent = describeSeed();
-  stateReadout.textContent = altered ? "altered by you" : "as the house wrote it";
+  writtenReadout.textContent = `${ORIGINAL_SEED.map(degree => NAMES[degree]).join(" · ")} · july 2026`;
+  stateReadout.textContent = altered
+    ? "altered by you"
+    : driftSteps > 0
+      ? `as time has made it · ${driftSteps} ${driftSteps === 1 ? "step" : "steps"} from written`
+      : "as the house wrote it";
   tracesReadout.textContent = `${countTraces()} / ${HOUSE.length}`;
   room.dataset.seed = altered ? "altered" : "written";
   forgetControl.hidden = !altered;

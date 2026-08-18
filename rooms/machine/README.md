@@ -6,13 +6,19 @@ Everything in the house grows from one four-note seed — E–B–F♯–A. Here
 
 The four notes can be moved. Take one with a pointer and drag it along its spoke, or choose it with the left and right arrow keys and raise or lower it with up and down. The seed is written to local browser storage as you change it, and the threshold reads it on the next visit: the house sings what you left behind, not what it was given.
 
+## Time's version
+
+The seed the mechanism runs on is no longer necessarily the one the house wrote. The house ages on calendar time — roughly every thirty-four days one note of the July 2026 seed moves a degree, in a fixed direction, without return — and the room shows all three layers at once: `written` is the seed as it was first performed, `seed` is what stands today, and `state` names whose doing the difference is: the house's, time's, or yours.
+
+`let the house forget` therefore returns the seed to time's version, not to the origin. Forgetting undoes the visitor; nothing undoes the calendar.
+
 ## The catch
 
 Every seventy-four seconds the mechanism slips for about four. The rotor drags behind the beat and then catches up, so the loop still closes where it should; the lattice loses its spacing and has to find it again; and one note — a different one each time — is struck but does not sound, leaving an audible hole at the position where it should have been. It is drawn refusing rather than missing.
 
 A mechanism that only ever runs correctly is a diagram. This one is the room the rest of the house is made from, which is exactly why it has to be able to fail and recover in front of you.
 
-This is the only room that alters another. It is also the only one that can be undone — `let the house forget` restores the original seed and removes the stored key entirely, so nothing of the change remains.
+This is the only room that alters another. It is also the only one whose visitor can be undone — `let the house forget` removes the stored key entirely, so nothing of *your* change remains; what time has changed stays changed.
 
 ## What the change reaches
 

@@ -19,6 +19,7 @@ let ratio = 1;
 let animationFrame = 0;
 let entered = false;
 let closing = false;
+const patina = 1 - housePatina();
 let withdraw = 1;
 let pulse = 0;
 let pointer = { x: width / 2, y: height / 2, visible: false };
@@ -116,9 +117,9 @@ function readSeed() {
       && stored.every(degree => Number.isInteger(degree) && degree >= 0 && degree < SEED_SCALE.length);
     if (usable) return stored;
   } catch (error) {
-    // The threshold sings the house's own seed when nothing is stored.
+    // The threshold sings what time has made of the seed when nothing is stored.
   }
-  return SEED_DEFAULT;
+  return agedSeed();
 }
 
 function readVisits() {
@@ -138,8 +139,9 @@ const visitedCount = rooms.filter(room => room.classList.contains("visited")).le
 if (visitedCount === 1) houseStatus.textContent = "One room has left a trace.";
 if (visitedCount > 1) houseStatus.textContent = `${visitedCount} rooms have left traces.`;
 
-const seedAltered = readSeed().some((degree, index) => degree !== SEED_DEFAULT[index]);
+const seedAltered = readSeed().some((degree, index) => degree !== agedSeed()[index]);
 if (seedAltered) houseStatus.textContent += " The seed has been altered.";
+else if (seedDriftSteps() > 0) houseStatus.textContent += " Time has moved the seed.";
 
 // A house that can only be entered is not a house. Once every room has left a
 // trace, the threshold has another gesture to offer.
@@ -312,7 +314,7 @@ function draw(time) {
       y: rect.y + rect.h / 2 + offsetY,
       radius: Math.min(rect.w, rect.h) * .42
     };
-    const trace = visits[name] ? 1 : 0;
+    const trace = traceStrength(visits[name]);
     const arrived = arrivalOf(name);
     houseX += centre.x;
     houseY += centre.y;
@@ -324,7 +326,7 @@ function draw(time) {
         centre.y + Math.cos(movementTime * field.sy) * field.ay,
         centre.radius * field.radius,
         field.colour,
-        (energy * field.strength + trace * field.trace) * arrived
+        (energy * field.strength * patina + trace * field.trace) * arrived
       );
     }
 
