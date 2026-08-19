@@ -62,6 +62,14 @@ Completed rooms leave a subtle trace at the threshold using local browser storag
 
 Once every room has left a trace, the threshold offers the gesture it withheld until then: the house can be left. The apertures withdraw one after another, the seed is said once all the way through, and the visitor can stay or let the traces go — which clears this browser's memory of the house and returns the entrance to a stranger. The seed left in the Machine Room is not a trace of the visitor and remains.
 
+## The house ages
+
+The house was first performed on 12 July 2026, and from that day it ages on calendar time — the same for every visitor, read from the date, with nothing stored or transmitted. The ageing is one-directional and does not cycle: no seasons, no return.
+
+Roughly every thirty-four days, one note of the written seed moves a degree along the scale, each note in a fixed direction it never reverses, until it reaches the edge of the scale and stays. When no visitor has altered the seed, the threshold sings what time has made of it. The light the rooms lend the entrance dims very slightly as the house ages — about a fifth after a year and a half, then no further — and a visitor's traces at the threshold are brightest when recent, fading over months unless they return.
+
+A visitor who comes only once cannot watch this happen. They can read that it has happened: the Machine Room keeps the seed as it was written in July 2026 beside the seed as it stands today, and names the distance between them. `let the house forget` returns the seed to time's version, not to the origin — the house cannot be reset to a day that has passed.
+
 ## Run locally
 
 Open `index.html` directly, or serve the repository root:
@@ -78,7 +86,7 @@ The repository is a static work designed for GitHub Pages. Publish from the root
 
 ## Status
 
-Version 1.2 — eight finished rooms and a threshold with its own visual and musical language.
+Version 1.4 — eight finished rooms, a threshold with its own visual and musical language, and a house that ages on calendar time.
 
 ## Credit
 
