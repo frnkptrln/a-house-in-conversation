@@ -3,112 +3,136 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0c15">
-  <meta name="description" content="A house of distinct audiovisual rooms, entered through conversation.">
+  <meta name="theme-color" content="#171512">
+  <meta name="description" content="A House in Conversation — one persistent, remembering audiovisual house.">
   <title>A House in Conversation</title>
-  <link rel="stylesheet" href="style.css?v=1.0.1">
-  <link rel="stylesheet" href="threshold-v1.1.css?v=1.1.0">
-  <link rel="stylesheet" href="threshold-v1.2.css?v=1.2.0">
+  <link rel="stylesheet" href="style.css?v=2.0.0">
 </head>
-<body>
-  <main id="threshold" data-state="arrival">
-    <canvas id="threshold-field" aria-hidden="true"></canvas>
-    <div class="grain" aria-hidden="true"></div>
+<body data-place="threshold" data-sound="waiting">
+  <main id="house">
+    <div id="remembered-surface" aria-hidden="true"></div>
+    <div class="house-seam" aria-hidden="true"></div>
 
-    <section class="arrival" aria-labelledby="house-title">
-      <h1 id="house-title">A House<br>in Conversation</h1>
-      <button id="enter" type="button">cross the threshold</button>
+    <section id="threshold" class="place threshold is-present" data-place="threshold" tabindex="-1" aria-labelledby="house-title">
+      <div class="threshold-wall" aria-hidden="true"></div>
+      <div class="threshold-copy">
+        <h1 id="house-title">A House<br>in Conversation</h1>
+      </div>
+      <button id="enter-house" class="threshold-door" type="button" aria-label="Enter the house">
+        <span class="door-plane" aria-hidden="true"></span>
+        <span class="door-word">enter</span>
+      </button>
     </section>
 
-    <section id="rooms" class="house" aria-label="Open rooms">
-      <nav class="house-nav" aria-label="House navigation">
-        <span aria-current="page">house</span>
-        <a href="rooms/conversation/">conversation</a>
-        <a href="rooms/colour/">colour</a>
-        <a href="rooms/garden/">garden</a>
-        <a href="rooms/listening/">listening</a>
-        <a href="rooms/afterimage/">afterimage</a>
-        <a href="rooms/window/">window</a>
-        <a href="rooms/machine/">machine</a>
-        <a href="rooms/archive/">archive</a>
-      </nav>
+    <section id="conversation" class="place conversation" data-place="conversation" tabindex="-1" aria-labelledby="conversation-name">
+      <h2 id="conversation-name" class="place-name">the conversation room</h2>
+      <div id="conversation-field" class="conversation-field">
+        <p id="conversation-left" class="conversation-fragment fragment-left">One arrived<br>with a body.</p>
+        <button id="relation" class="relation" type="button" aria-label="Touch the space between the two fragments">
+          <span aria-hidden="true"></span>
+        </button>
+        <p id="conversation-right" class="conversation-fragment fragment-right">The other<br>as an answer.</p>
+      </div>
+      <button class="passage passage-right" type="button" data-to="hall" aria-label="Continue into the hall">
+        <span>the hall</span>
+      </button>
+    </section>
 
-      <nav class="rooms" aria-label="Rooms in the house">
-        <a class="room room-conversation" data-room="conversation" href="rooms/conversation/">
-          <span class="aperture" aria-hidden="true"></span>
-          <span class="room-name">the conversation room</span>
-        </a>
-
-        <a class="room room-colour" data-room="colour" href="rooms/colour/">
-          <span class="aperture" aria-hidden="true"></span>
-          <span class="room-name">the colour room</span>
-        </a>
-
-        <a class="room room-afterimage" data-room="afterimage" href="rooms/afterimage/">
-          <span class="aperture" aria-hidden="true"></span>
-          <span class="room-name">the afterimage</span>
-        </a>
-
-        <a class="room room-garden" data-room="garden" href="rooms/garden/">
-          <span class="aperture" aria-hidden="true"></span>
-          <span class="room-name">the garden</span>
-        </a>
-
-        <a class="room room-listening" data-room="listening" href="rooms/listening/">
-          <span class="aperture" aria-hidden="true"></span>
-          <span class="room-name">the listening room</span>
-        </a>
-
-        <a class="room room-window" data-room="window" href="rooms/window/">
-          <span class="aperture" aria-hidden="true"></span>
-          <span class="room-name">the window</span>
-        </a>
-
-        <a class="room room-machine" data-room="machine" href="rooms/machine/">
-          <span class="aperture" aria-hidden="true"></span>
-          <span class="room-name">the machine room</span>
-        </a>
-
-        <a class="room room-archive" data-room="archive" href="rooms/archive/">
-          <span class="aperture" aria-hidden="true"></span>
-          <span class="room-name">the archive</span>
-        </a>
-      </nav>
-
-      <div class="unformed" aria-hidden="true">
+    <section id="hall" class="place hall" data-place="hall" tabindex="-1" aria-labelledby="hall-name">
+      <h2 id="hall-name" class="visually-hidden">The hall</h2>
+      <div class="hall-depth" aria-hidden="true">
         <i></i><i></i><i></i>
       </div>
+      <div id="hall-memory" class="hall-memory" aria-hidden="true"></div>
 
-      <button id="sound" class="sound" type="button" aria-pressed="false">silence</button>
-      <button id="leave" class="leave" type="button" hidden>leave the house</button>
-      <p id="house-status" class="visually-hidden" aria-live="polite">Eight rooms are open.</p>
+      <button class="hall-door door-conversation" type="button" data-to="conversation">
+        <span>conversation</span>
+      </button>
+      <button class="hall-door door-colour" type="button" data-to="colour">
+        <span>colour</span>
+      </button>
+      <button class="hall-door door-window" type="button" data-to="window">
+        <span>window</span>
+      </button>
+      <button id="garden-door" class="hall-door door-garden" type="button" data-to="garden" hidden>
+        <span>garden</span>
+      </button>
+      <button id="machine-hatch" class="machine-hatch" type="button" data-to="machine" hidden>
+        <span>below</span>
+      </button>
     </section>
 
-    <section id="closing" class="closing" aria-label="Leaving the house">
-      <p class="closing-line">every room has been entered.<br>the house is not the same shape it was.</p>
-      <div class="closing-actions">
-        <button id="stay" type="button">stay</button>
-        <button id="release" type="button">let the traces go</button>
+    <section id="colour" class="place colour" data-place="colour" tabindex="-1" aria-labelledby="colour-name">
+      <h2 id="colour-name" class="place-name">the colour room</h2>
+      <canvas id="colour-field" aria-label="Two pigments that can be moved together. Press Space to change which pigment is held; use the arrow keys to move it." tabindex="0"></canvas>
+      <p id="colour-status" class="visually-hidden" aria-live="polite">Two colours remain apart.</p>
+      <button class="passage passage-left passage-dark" type="button" data-to="hall" aria-label="Return through the wall to the hall">
+        <span>the wall</span>
+      </button>
+    </section>
+
+    <section id="garden" class="place garden" data-place="garden" tabindex="-1" aria-labelledby="garden-name">
+      <h2 id="garden-name" class="place-name">the garden</h2>
+      <canvas id="garden-field" aria-label="A garden that grows with stillness; touch or press Space to invite a bloom" tabindex="0"></canvas>
+      <p id="garden-status" class="visually-hidden" aria-live="polite">The garden is growing.</p>
+      <button class="passage passage-left passage-pale" type="button" data-to="hall" aria-label="Return inside to the hall">
+        <span>inside</span>
+      </button>
+    </section>
+
+    <section id="window" class="place window" data-place="window" tabindex="-1" aria-labelledby="window-name">
+      <h2 id="window-name" class="place-name">the window</h2>
+      <canvas id="window-field" aria-label="A silent view through glass. Movement reveals the glass; stillness reveals the distance." tabindex="0"></canvas>
+      <p id="window-status" class="visually-hidden" aria-live="polite">The glass is near.</p>
+      <button class="passage passage-left passage-pale" type="button" data-to="hall" aria-label="Step away from the window into the hall">
+        <span>behind you</span>
+      </button>
+    </section>
+
+    <section id="machine" class="place machine" data-place="machine" tabindex="-1" aria-labelledby="machine-name">
+      <h2 id="machine-name" class="place-name">under the house</h2>
+      <div class="mechanism" aria-label="Four parts of the house's tuning">
+        <label class="machine-slot">
+          <span class="visually-hidden">First distance</span>
+          <input type="range" min="-4" max="4" step="1" value="0" data-tuning="0">
+        </label>
+        <label class="machine-slot">
+          <span class="visually-hidden">Second distance</span>
+          <input type="range" min="-4" max="4" step="1" value="0" data-tuning="1">
+        </label>
+        <label class="machine-slot">
+          <span class="visually-hidden">Third distance</span>
+          <input type="range" min="-4" max="4" step="1" value="0" data-tuning="2">
+        </label>
+        <label class="machine-slot">
+          <span class="visually-hidden">Fourth distance</span>
+          <input type="range" min="-4" max="4" step="1" value="0" data-tuning="3">
+        </label>
       </div>
-      <p id="closing-note" class="closing-note">letting them go clears this browser's memory of the house: which rooms you entered, and everything the archive still held. The seed you left in the machine room stays.</p>
+      <button class="passage passage-up passage-pale" type="button" data-to="hall" aria-label="Climb back into the hall">
+        <span>upstairs</span>
+      </button>
     </section>
+
+    <div id="afterimage" class="afterimage" aria-hidden="true">
+      <span class="afterimage-shape"></span>
+      <span id="afterimage-fragment" class="afterimage-fragment"></span>
+    </div>
+
+    <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="false" hidden>silence</button>
+    <p id="house-status" class="visually-hidden" aria-live="polite">The house is waiting.</p>
   </main>
 
   <noscript>
-    <nav class="without-script" aria-label="Rooms">
-      <a href="rooms/conversation/">The Conversation Room</a>
-      <a href="rooms/colour/">The Colour Room</a>
-      <a href="rooms/garden/">The Garden</a>
-      <a href="rooms/listening/">The Listening Room</a>
-      <a href="rooms/afterimage/">The Afterimage</a>
-      <a href="rooms/window/">The Window</a>
-      <a href="rooms/machine/">The Machine Room</a>
-      <a href="rooms/archive/">The Archive</a>
-    </nav>
+    <p class="without-script">This house needs JavaScript in order to keep its rooms together.</p>
   </noscript>
-  <audio id="threshold-track" src="audio/threshold.m4a" preload="metadata" playsinline loop></audio>
-  <script src="house-age.js?v=1.4.0"></script>
-  <script src="threshold-rooms.js?v=1.4.0"></script>
-  <script src="script.js?v=1.4.0"></script>
+
+  <audio id="listening-near" src="rooms/listening/audio/near.m4a" preload="metadata" playsinline loop></audio>
+  <audio id="listening-depth" src="rooms/listening/audio/depth.m4a" preload="metadata" playsinline loop></audio>
+  <audio id="conversation-track" src="audio/house.m4a" preload="metadata" playsinline loop></audio>
+  <audio id="colour-track" src="rooms/colour/audio/colour.m4a" preload="metadata" playsinline loop></audio>
+  <audio id="garden-track" src="rooms/garden/audio/garden.m4a" preload="metadata" playsinline loop></audio>
+
+  <script src="script.js?v=2.0.0"></script>
 </body>
 </html>

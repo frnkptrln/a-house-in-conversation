@@ -1,0 +1,8 @@
+{
+  "name": "a-house-in-conversation",
+  "version": "2.0.0-prototype",
+  "private": true,
+  "scripts": {
+    "test": "node --check script.js && node --check rooms/afterimage/script.js && node tests/v2-contract.mjs"
+  }
+}

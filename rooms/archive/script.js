@@ -34,7 +34,6 @@ const SOURCES = {
   ],
   afterimage: [
     "listen without solving",
-    "manche Räume verändern nicht sich",
     "ninety-two seconds and nothing asked"
   ],
   window: [
