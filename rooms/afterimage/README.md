@@ -1,7 +1,11 @@
-# The Afterimage — earlier study
+# The Afterimage
 
-This directory keeps the 92-second Web Audio study that preceded the persistent-house architecture.
+The fifth room in **A House in Conversation**: a 92-second sound room that asks for no interaction beyond time.
 
-In V2, Afterimage is no longer a room, a destination, or a spoken conclusion. It is the visual and acoustic residue carried across a change of place in the root experience. The earlier browser-synthesized sentence has been removed from this retained study as well.
+Filtered air, two low harmonic planes, an unstable pulse, and short glitches open a field that withdraws into several seconds of visual and acoustic absence. The browser-synthesized narration and its concluding sentence have been removed.
 
-The V2 work begins at the repository root. This directory remains only as source material for the transition system.
+Unlike the recorded rooms, Afterimage is composed in Web Audio at runtime. The threshold lends it a dim field and a low filter register.
+
+## Run
+
+Serve the repository root and visit `/rooms/afterimage/`.
