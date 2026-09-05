@@ -2,6 +2,8 @@
 
 Arbeitsstand: 21. August 2026
 
+Fortsetzung: 5. September 2026
+
 Zweck: Verbindliche Grundlage für die Überarbeitung des Hauses. Die bestehenden Arbeiten bleiben Material; ihre frühere Ordnung als acht gleichwertige Webseiten bleibt nicht erhalten.
 
 ## Leitidee
@@ -79,3 +81,20 @@ Der erste V2-Prototyp gilt als tragfähig, wenn er Folgendes gemeinsam beweist:
 - Kalibrierung, wie stark Erinnerung und Vergessen zwischen Besuchen wirken;
 - Prüfung der tatsächlichen Wirkung auf Desktop und Mobilgeräten;
 - Entscheidung, welche V1-Mechaniken nach der Materialphase dauerhaft im Werk bleiben.
+
+## Gesprächsfassung vom 5. September
+
+Conversation beginnt jetzt mit „I thought you’d gone.“ / „I was listening.“
+Die folgenden Fragmente bleiben bei einer offenen Tür, gewandertem Licht und
+einem stehen gebliebenen Stuhl. Wer spricht, wird nicht zugeordnet. Das Haus
+erklärt seine Idee nicht vorab; die beiden Stimmen lassen etwas zwischen sich
+offen. Dies ist eine erste sprachliche Fassung, keine abgeschlossene Komposition.
+
+Als nächster Materialschritt bietet sich eine einzelne eigene Ortsaufnahme an,
+die an mehreren Stellen des Hauses in anderer Entfernung wiederkehrt. Das
+würde eine erkennbare Herkunft hörbar machen. Die konkrete Aufnahme ist noch
+nicht ausgewählt. Fenster und Stille behalten ihr Gewicht.
+
+Die Interaktionskorrekturen sind im bestehenden Prototyp umgesetzt und gezielt
+getestet. Die tatsächliche Browser- und Hörabnahme bleibt offen; die verfügbare
+Vorschau unterstützt den statischen Aufbau dieses Repositories nicht.

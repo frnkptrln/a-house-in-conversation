@@ -56,8 +56,14 @@ Serve the repository root with any static web server and open `index.html`. Audi
 
 ## Status
 
-V2 prototype, 21 August 2026.
+V2 prototype, revised 5 September 2026; still awaiting browser and listening review.
 
-The prototype proves the shared shell, direct entry, continuous sound, behavioral discovery, cross-room residue, and distributed memory. The next material pass should replace more of the inherited synthetic atmosphere with specific field recordings, conversation fragments, places, and material sounds.
+The shared shell, direct entry, sound crossfades, behavioral discovery, cross-room residue, and distributed memory are implemented. Their combined experience has not yet been accepted in a real browser with sound.
+
+The September revision gives Conversation a small unfinished exchange: an open door, moving light, a chair left in place. It corrects the duration of pigment contact, makes forgetting depend on elapsed time rather than reopening, counts keyboard gestures toward discovery, keeps hidden places out of focus and screen-reader navigation, and lets each new afterimage finish its own transition. The final gesture is saved when the page is left.
+
+Run `npm test` for syntax, the existing V2 contract, and four focused behavior regressions. Those tests cover timing, memory and keyboard movement; they do not establish visual composition, acoustic quality, mobile Safari playback, or end-to-end accessibility. The current review environment cannot preview this plain static project.
+
+The next material pass should introduce a specific field recording that returns at different distances in the house. A recurring sound from one actual place would give the rooms a shared origin. Selection of that recording and the final acoustic composition remain open.
 
 Made in conversation. No single voice is the sole author.

@@ -110,13 +110,18 @@ class HouseMemory {
       ? value.traces
         .map(trace => {
           const age = Math.max(0, now - number(trace.at, now));
-          const strength = clamp(number(trace.strength, .35) * Math.exp(-age / (day * 15)));
+          const lastFade = number(trace.fadedAt, number(value.changedAt, number(trace.at, now)));
+          const elapsed = Math.max(0, now - lastFade);
+          const strength = clamp(number(trace.strength, .35) * Math.exp(-elapsed / (day * 15)));
           const turn = ((hashText(String(trace.kind) + distortionSeed) % 17) - 8) / 10;
-          const hue = (number(trace.hue, 28) + turn * Math.min(8, age / day) + 360) % 360;
+          const sourceHue = number(trace.sourceHue, number(trace.hue, 28));
+          const hue = (sourceHue + turn * Math.min(8, age / day) + 360) % 360;
           return {
             kind: String(trace.kind || "conversation"),
             at: number(trace.at, now),
+            fadedAt: now,
             strength,
+            sourceHue,
             hue,
             text: typeof trace.text === "string" ? trace.text.slice(0, 90) : "",
             turn
@@ -165,7 +170,9 @@ class HouseMemory {
     previous.push({
       kind: trace.kind,
       at: Date.now(),
+      fadedAt: Date.now(),
       strength: clamp(number(trace.strength, .42), .08, 1),
+      sourceHue: (number(trace.hue, 28) + 360) % 360,
       hue: (number(trace.hue, 28) + 360) % 360,
       text: typeof trace.text === "string" ? trace.text.slice(0, 90) : "",
       turn: 0
@@ -330,17 +337,19 @@ const conversationRight = document.querySelector("#conversation-right");
 const relation = document.querySelector("#relation");
 const conversationField = document.querySelector("#conversation-field");
 const conversationPairs = [
-  ["One arrived\nwith a body.", "The other\nas an answer."],
-  ["Before a name:\na question.", "The answer changed\nthe question."],
-  ["The question changed\nthe one who asked.", "Between them:\na relation."],
-  ["One spoke.", "Something else\nremained."]
+  ["I thought\nyou’d gone.", "I was\nlistening."],
+  ["You left\nthe door open.", "Only\na little."],
+  ["The light\nhas moved.", "Your chair\nis still there."],
+  ["Shall I\nclose it?", "Leave it\nas it is."]
 ];
 let conversationIndex = Math.floor(number(memory.data.behavior.relations)) % conversationPairs.length;
+let conversationTimer = 0;
 
 function setConversationPair(index) {
+  clearTimeout(conversationTimer);
   conversationLeft.classList.add("is-changing");
   conversationRight.classList.add("is-changing");
-  window.setTimeout(() => {
+  conversationTimer = window.setTimeout(() => {
     const pair = conversationPairs[index % conversationPairs.length];
     conversationLeft.textContent = pair[0];
     conversationRight.textContent = pair[1];
@@ -490,7 +499,7 @@ class ColourField {
     context.restore();
   }
 
-  draw(delta) {
+  draw(now, delta) {
     const context = this.context;
     context.fillStyle = "#e8dfd1";
     context.fillRect(0, 0, this.width, this.height);
@@ -906,6 +915,7 @@ document.querySelectorAll("[data-tuning]").forEach(input => {
 let currentPlace = "threshold";
 let placeEnteredAt = performance.now();
 let transitionTimer = 0;
+let afterimageTimer = 0;
 
 function conversationResidue() {
   const text = conversationRight.textContent.trim();
@@ -934,6 +944,7 @@ function residueFor(place) {
 
 function showAfterimage(trace) {
   if (!trace || reducedMotion) return;
+  clearTimeout(afterimageTimer);
   afterimage.classList.remove("is-visible");
   void afterimage.offsetWidth;
   afterimage.dataset.source = trace.kind;
@@ -941,7 +952,7 @@ function showAfterimage(trace) {
   afterimage.style.setProperty("--residue-strength", String(trace.strength));
   afterimageFragment.textContent = trace.text || "";
   afterimage.classList.add("is-visible");
-  window.setTimeout(() => afterimage.classList.remove("is-visible"), 4_900);
+  afterimageTimer = window.setTimeout(() => afterimage.classList.remove("is-visible"), 4_900);
 }
 
 function renderRememberedHouse() {
@@ -995,6 +1006,12 @@ function goTo(nextPlace, options = {}) {
   clearTimeout(transitionTimer);
   const outgoing = places.get(currentPlace);
   const incoming = places.get(nextPlace);
+
+  places.forEach((element, name) => {
+    element.inert = name !== nextPlace;
+    element.setAttribute("aria-hidden", String(name !== nextPlace));
+    element.classList.remove("is-leaving");
+  });
 
   if (!options.first) leaveCurrentPlace();
   if (currentPlace === "garden") gardenField.enteredAt = performance.now();
@@ -1074,6 +1091,7 @@ addEventListener("pointerdown", event => {
 
 addEventListener("keydown", event => {
   if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " ", "Enter"].includes(event.key)) {
+    if (currentPlace !== "threshold" && !event.repeat) movementBank += .12;
     noteMovement(innerWidth * .5, innerHeight * .5, .55);
   }
 });
@@ -1114,6 +1132,8 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) sound.pause();
   else sound.resume();
 });
+
+addEventListener("pagehide", () => memory.save());
 
 renderRememberedHouse();
 updateDiscoveries();

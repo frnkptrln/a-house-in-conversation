@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#171512">
   <meta name="description" content="A House in Conversation — one persistent, remembering audiovisual house.">
   <title>A House in Conversation</title>
-  <link rel="stylesheet" href="style.css?v=2.0.0">
+  <link rel="stylesheet" href="style.css?v=2.0.1">
 </head>
 <body data-place="threshold" data-sound="waiting">
   <main id="house">
@@ -24,21 +24,21 @@
       </button>
     </section>
 
-    <section id="conversation" class="place conversation" data-place="conversation" tabindex="-1" aria-labelledby="conversation-name">
+    <section id="conversation" class="place conversation" data-place="conversation" tabindex="-1" aria-labelledby="conversation-name" inert aria-hidden="true">
       <h2 id="conversation-name" class="place-name">the conversation room</h2>
       <div id="conversation-field" class="conversation-field">
-        <p id="conversation-left" class="conversation-fragment fragment-left">One arrived<br>with a body.</p>
+        <p id="conversation-left" class="conversation-fragment fragment-left">I thought<br>you’d gone.</p>
         <button id="relation" class="relation" type="button" aria-label="Touch the space between the two fragments">
           <span aria-hidden="true"></span>
         </button>
-        <p id="conversation-right" class="conversation-fragment fragment-right">The other<br>as an answer.</p>
+        <p id="conversation-right" class="conversation-fragment fragment-right">I was<br>listening.</p>
       </div>
       <button class="passage passage-right" type="button" data-to="hall" aria-label="Continue into the hall">
         <span>the hall</span>
       </button>
     </section>
 
-    <section id="hall" class="place hall" data-place="hall" tabindex="-1" aria-labelledby="hall-name">
+    <section id="hall" class="place hall" data-place="hall" tabindex="-1" aria-labelledby="hall-name" inert aria-hidden="true">
       <h2 id="hall-name" class="visually-hidden">The hall</h2>
       <div class="hall-depth" aria-hidden="true">
         <i></i><i></i><i></i>
@@ -62,7 +62,7 @@
       </button>
     </section>
 
-    <section id="colour" class="place colour" data-place="colour" tabindex="-1" aria-labelledby="colour-name">
+    <section id="colour" class="place colour" data-place="colour" tabindex="-1" aria-labelledby="colour-name" inert aria-hidden="true">
       <h2 id="colour-name" class="place-name">the colour room</h2>
       <canvas id="colour-field" aria-label="Two pigments that can be moved together. Press Space to change which pigment is held; use the arrow keys to move it." tabindex="0"></canvas>
       <p id="colour-status" class="visually-hidden" aria-live="polite">Two colours remain apart.</p>
@@ -71,7 +71,7 @@
       </button>
     </section>
 
-    <section id="garden" class="place garden" data-place="garden" tabindex="-1" aria-labelledby="garden-name">
+    <section id="garden" class="place garden" data-place="garden" tabindex="-1" aria-labelledby="garden-name" inert aria-hidden="true">
       <h2 id="garden-name" class="place-name">the garden</h2>
       <canvas id="garden-field" aria-label="A garden that grows with stillness; touch or press Space to invite a bloom" tabindex="0"></canvas>
       <p id="garden-status" class="visually-hidden" aria-live="polite">The garden is growing.</p>
@@ -80,7 +80,7 @@
       </button>
     </section>
 
-    <section id="window" class="place window" data-place="window" tabindex="-1" aria-labelledby="window-name">
+    <section id="window" class="place window" data-place="window" tabindex="-1" aria-labelledby="window-name" inert aria-hidden="true">
       <h2 id="window-name" class="place-name">the window</h2>
       <canvas id="window-field" aria-label="A silent view through glass. Movement reveals the glass; stillness reveals the distance." tabindex="0"></canvas>
       <p id="window-status" class="visually-hidden" aria-live="polite">The glass is near.</p>
@@ -89,7 +89,7 @@
       </button>
     </section>
 
-    <section id="machine" class="place machine" data-place="machine" tabindex="-1" aria-labelledby="machine-name">
+    <section id="machine" class="place machine" data-place="machine" tabindex="-1" aria-labelledby="machine-name" inert aria-hidden="true">
       <h2 id="machine-name" class="place-name">under the house</h2>
       <div class="mechanism" aria-label="Four parts of the house's tuning">
         <label class="machine-slot">
@@ -133,6 +133,6 @@
   <audio id="colour-track" src="rooms/colour/audio/colour.m4a" preload="metadata" playsinline loop></audio>
   <audio id="garden-track" src="rooms/garden/audio/garden.m4a" preload="metadata" playsinline loop></audio>
 
-  <script src="script.js?v=2.0.0"></script>
+  <script src="script.js?v=2.0.1"></script>
 </body>
 </html>
