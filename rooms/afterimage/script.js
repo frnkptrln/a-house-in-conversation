@@ -239,24 +239,9 @@ function createNoiseLoop(destination, amplitude, lowpass, highpass = 25) {
   source.stop(startTime + DURATION);
 }
 
-function speakLine() {
-  if (muted || document.hidden || !("speechSynthesis" in window)) return;
-  speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance("Manche Räume verändern nicht sich. Sie verändern uns.");
-  utterance.lang = "de-DE";
-  utterance.rate = .72;
-  utterance.pitch = .58;
-  utterance.volume = .68;
-  const voices = speechSynthesis.getVoices();
-  const german = voices.find(voice => voice.lang.toLowerCase().startsWith("de"));
-  if (german) utterance.voice = german;
-  speechSynthesis.speak(utterance);
-}
-
 function clearTimers() {
   timers.forEach(timer => clearTimeout(timer));
   timers = [];
-  if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
 function finishPerformance() {
@@ -351,7 +336,6 @@ async function buildPerformance() {
     scheduleGlitch(master, start, frequencies[index % frequencies.length], index % 2 ? .72 : -.74);
   });
 
-  timers.push(setTimeout(speakLine, 49_200));
   timers.push(setTimeout(finishPerformance, DURATION * 1000));
 }
 
@@ -386,7 +370,6 @@ sound.addEventListener("click", () => {
   audible.gain.cancelScheduledValues(now);
   audible.gain.setValueAtTime(Math.max(.0001, audible.gain.value), now);
   audible.gain.exponentialRampToValueAtTime(muted ? .0001 : 1, now + .7);
-  if (muted && "speechSynthesis" in window) speechSynthesis.cancel();
   sound.textContent = muted ? "sound" : "silence";
   sound.setAttribute("aria-pressed", String(muted));
   status.textContent = muted ? "The room continues in silence." : "The room is sounding.";
@@ -405,7 +388,6 @@ document.addEventListener("visibilitychange", () => {
   if (!audio || !audible) return;
   if (document.hidden) {
     audible.gain.setTargetAtTime(.0001, audio.currentTime, .22);
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
   } else if (!muted && running) {
     audible.gain.setTargetAtTime(1, audio.currentTime, .5);
   }
