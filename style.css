@@ -1037,15 +1037,22 @@ body[data-place="machine"] .house-seam {
   z-index: 50;
   right: max(1.2rem, env(safe-area-inset-right));
   bottom: max(1.1rem, env(safe-area-inset-bottom));
-  padding: .35rem 0;
+  min-width: 44px;
+  min-height: 44px;
+  padding: .6rem .45rem;
   border: 0;
   border-bottom: 1px solid currentColor;
   background: transparent;
   color: inherit;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: .52rem;
+  font-size: .65rem;
   letter-spacing: .17em;
-  opacity: .42;
+  opacity: .85;
+}
+
+body[data-place="conversation"] .sound-toggle,
+body[data-place="colour"] .sound-toggle {
+  color: #302b25;
 }
 
 .sound-toggle:hover,
@@ -1203,12 +1210,42 @@ body[data-place="machine"] .house-seam {
   .conversation-fragment,
   .hall-door,
   .passage::before {
-    transition-duration: .01ms !important;
-    transition-delay: 0s !important;
+    transition: none !important;
   }
 
   .afterimage.is-visible,
   .door-garden:not([hidden]) {
     animation-duration: .01ms !important;
+  }
+}
+
+
+/* In portrait, the title and the door occupy different depths of the page. */
+@media (max-width: 760px) and (orientation: portrait) {
+  .threshold-copy {
+    top: 13%;
+    right: 1.6rem;
+    transform: none;
+  }
+
+  .threshold-door {
+    top: 42%;
+    right: 8%;
+    width: 34vw;
+  }
+}
+
+@media (max-height: 540px) and (orientation: landscape) {
+  .threshold-copy {
+    top: 50%;
+  }
+
+  .threshold h1 {
+    font-size: clamp(1.8rem, 7vw, 3.2rem);
+  }
+
+  .threshold-door {
+    right: 5%;
+    width: 22vw;
   }
 }

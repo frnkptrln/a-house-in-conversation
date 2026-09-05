@@ -233,7 +233,8 @@ class HouseSound {
   }
 
   async ensure(element) {
-    if (!element || !element.paused) return true;
+    if (!element) return false;
+    if (!element.paused) return true;
     try {
       await element.play();
       return true;
@@ -245,15 +246,9 @@ class HouseSound {
   async enter() {
     this.started = true;
     this.active = "conversation";
-    const results = await Promise.all([
-      this.ensure(this.near),
-      this.ensure(this.depth),
-      this.ensure(this.tracks.conversation)
-    ]);
-    body.dataset.sound = results.some(Boolean) ? "on" : "waiting";
-    soundToggle.textContent = results.some(Boolean) ? "silence" : "sound";
     soundToggle.hidden = false;
-    return results.some(Boolean);
+    soundToggle.textContent = "sound";
+    return this.retry();
   }
 
   setPlace(place) {
@@ -265,15 +260,19 @@ class HouseSound {
   }
 
   async retry() {
-    if (!this.started) return false;
+    if (!this.started || this.muted || document.hidden) return false;
     const elements = [this.near, this.depth];
     if (this.tracks[this.active]) elements.push(this.tracks[this.active]);
     const results = await Promise.all(elements.map(element => this.ensure(element)));
     const started = results.some(Boolean);
-    if (started) {
-      body.dataset.sound = "on";
-      soundToggle.textContent = "silence";
+    // A late play() result must not undo a more recent mute or tab suspension.
+    if (this.muted || document.hidden) {
+      this.pause();
+      return false;
     }
+    body.dataset.sound = started ? "on" : "waiting";
+    soundToggle.textContent = started ? "silence" : "sound";
+    soundToggle.setAttribute("aria-pressed", "false");
     return started;
   }
 
@@ -314,9 +313,10 @@ class HouseSound {
 
   toggle() {
     this.muted = !this.muted;
+    this.elements.forEach(element => { element.muted = this.muted; });
+    body.dataset.sound = this.muted ? "off" : "waiting";
+    soundToggle.textContent = "sound";
     if (!this.muted) this.retry();
-    body.dataset.sound = this.muted ? "off" : "on";
-    soundToggle.textContent = this.muted ? "sound" : "silence";
     soundToggle.setAttribute("aria-pressed", String(this.muted));
     return this.muted;
   }
@@ -915,6 +915,7 @@ document.querySelectorAll("[data-tuning]").forEach(input => {
 let currentPlace = "threshold";
 let placeEnteredAt = performance.now();
 let transitionTimer = 0;
+let transitionFrame = 0;
 let afterimageTimer = 0;
 
 function conversationResidue() {
@@ -1004,6 +1005,7 @@ function leaveCurrentPlace() {
 function goTo(nextPlace, options = {}) {
   if (!places.has(nextPlace) || nextPlace === currentPlace) return;
   clearTimeout(transitionTimer);
+  cancelAnimationFrame(transitionFrame);
   const outgoing = places.get(currentPlace);
   const incoming = places.get(nextPlace);
 
@@ -1026,11 +1028,15 @@ function goTo(nextPlace, options = {}) {
   if (nextPlace === "garden") gardenField.enter();
   updateDiscoveries();
 
-  requestAnimationFrame(() => incoming.classList.add("is-present"));
-  transitionTimer = window.setTimeout(() => {
-    outgoing.classList.remove("is-leaving");
-    incoming.focus({ preventScroll: true });
-  }, reducedMotion ? 0 : 1_050);
+  transitionFrame = requestAnimationFrame(() => {
+    if (currentPlace !== nextPlace) return;
+    incoming.classList.add("is-present");
+    // Focus only after the destination is visible, also with reduced motion.
+    transitionTimer = window.setTimeout(() => {
+      outgoing.classList.remove("is-leaving");
+      incoming.focus({ preventScroll: true });
+    }, reducedMotion ? 0 : 1_050);
+  });
   status.textContent = nextPlace === "hall"
     ? "You are in the hall."
     : "You entered " + nextPlace + ".";
