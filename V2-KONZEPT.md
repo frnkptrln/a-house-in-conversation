@@ -1,5 +1,7 @@
 # A House in Conversation — V2-Konzept
 
+Status, 5. September 2026: Der in #16 eingeführte Prototyp wurde als Ersatz für das bestehende Haus zurückgewiesen. Der Einstieg führt wieder zu den erhaltenen Originalräumen. Der folgende Text dokumentiert die geplante Richtung und den zurückgenommenen Versuch, nicht den aktuellen Funktionsstand. Die bestehenden Kompositionen und Mechaniken müssen bei einer späteren Integration tatsächlich weiterlaufen; ihre Dateien lediglich aufzubewahren und sichtbar durch vereinfachte Fassungen zu ersetzen, erfüllt dieses Ziel nicht. Die Entfernung der unerwünschten Erzählerstimme bleibt erhalten.
+
 Arbeitsstand: 21. August 2026
 
 Fortsetzung: 5. September 2026
