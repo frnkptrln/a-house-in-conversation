@@ -191,10 +191,16 @@ const MINIATURE_INTERVAL = 48;
 let miniaturesPaintedAt = 0;
 
 function measureRooms() {
+  const surface = canvas.getBoundingClientRect();
   for (const room of rooms) room.style.transform = "translate(-50%, -50%)";
   for (const room of rooms) {
     const rect = room.getBoundingClientRect();
-    layout.set(room, { x: rect.left, y: rect.top, w: rect.width, h: rect.height });
+    layout.set(room, {
+      x: rect.left - surface.left,
+      y: rect.top - surface.top,
+      w: rect.width,
+      h: rect.height
+    });
   }
   buffers.clear();
   miniaturesPaintedAt = 0;
@@ -234,9 +240,13 @@ function paintMiniature(name, box, time, energy) {
 }
 
 function resize() {
+  const surface = canvas.getBoundingClientRect();
   ratio = Math.min(devicePixelRatio || 1, 2);
-  width = innerWidth;
-  height = innerHeight;
+  // The CSS surface uses the small viewport height. Mobile browser chrome
+  // can make innerHeight larger; using it would scale the picture away
+  // from the room edges and captions drawn by CSS.
+  width = Math.max(1, surface.width);
+  height = Math.max(1, surface.height);
   canvas.width = Math.round(width * ratio);
   canvas.height = Math.round(height * ratio);
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -824,13 +834,42 @@ document.querySelectorAll(".house-nav a").forEach(link => {
   link.addEventListener("click", chooseRoom);
 });
 
-addEventListener("pointermove", event => {
-  pointer = { x: event.clientX, y: event.clientY, visible: true };
-});
+function updatePointer(event) {
+  // A touch selects a control or a room; it is not a hovering viewpoint.
+  if (event.pointerType !== "mouse") {
+    pointer.visible = false;
+    return false;
+  }
+  const surface = canvas.getBoundingClientRect();
+  pointer = {
+    x: event.clientX - surface.left,
+    y: event.clientY - surface.top,
+    visible: true
+  };
+  return true;
+}
+
+addEventListener("pointermove", updatePointer);
 
 addEventListener("pointerdown", event => {
-  pointer = { x: event.clientX, y: event.clientY, visible: true };
-  pulse = Math.min(1, pulse + .34);
+  if (event.target.closest?.("button, a")) {
+    if (event.pointerType !== "mouse") pointer.visible = false;
+    return;
+  }
+  if (updatePointer(event)) pulse = Math.min(1, pulse + .34);
+});
+
+addEventListener("blur", () => { pointer.visible = false; });
+addEventListener("pointerout", event => {
+  if (!event.relatedTarget) pointer.visible = false;
+});
+
+addEventListener("pageshow", event => {
+  pointer.visible = false;
+  if (event.persisted && threshold.dataset.state === "leaving") {
+    threshold.dataset.state = "house";
+  }
+  resize();
 });
 
 addEventListener("resize", resize);
