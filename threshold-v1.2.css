@@ -299,6 +299,27 @@
   .closing-actions { gap: 1.5rem; }
 }
 
+@media (max-width: 650px) and (orientation: portrait) {
+  /* Four rows are 21svh apart. Keep each image within its row even when
+     browser controls shorten the viewport, leaving space for its caption.
+     Preserve the room aspect ratios: (21svh - 2rem) * .78 or * 1.22. */
+  .room { max-width: calc(16.38svh - 1.56rem); }
+  .room-window { max-width: calc(25.62svh - 2.44rem); }
+
+  .room .room-name {
+    top: calc(95% + .375rem);
+    bottom: auto;
+    width: 42vw;
+    transform: translateX(-50%);
+    font-size: .58rem;
+    line-height: 1.35;
+    letter-spacing: .1em;
+    text-align: center;
+    white-space: normal;
+  }
+
+}
+
 @media (max-height: 520px) and (orientation: landscape) {
   .room { width: min(12.5vw, 5.6rem); }
   .room-conversation { left: 10%; top: 40%; width: min(14vw, 6.2rem); }
