@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A line left at the threshold — separate study</title>
+<style>
+  :root { color-scheme: light; background: #eae6dd; color: #3a3935; font-family: Georgia, serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100svh; display: grid; grid-template-rows: auto 1fr auto; }
+  header, footer { padding: 24px clamp(24px,6vw,90px); }
+  header { font: 11px/1.6 system-ui,sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+  main { display: grid; place-items: center; min-height: 360px; overflow: hidden; }
+  svg { width: min(100%,1200px); height: auto; display: block; }
+  .trace { opacity: .06; transition: opacity 7s linear; }
+  .passing .trace { opacity: .64; transition-duration: .25s; }
+  .door { transform-origin: 600px 335px; transform: scaleX(.02); transition: transform 1.8s ease-in-out; }
+  .passing .door { transform: scaleX(1); }
+  footer { display: flex; align-items: center; justify-content: space-between; gap: 28px; flex-wrap: wrap; }
+  p { margin: 0; font-size: clamp(17px,2vw,23px); line-height: 1.5; }
+  button { appearance: none; border: 1px solid #9b998f; border-radius: 0; color: inherit; background: transparent; padding: 13px 20px; font: 13px Georgia,serif; cursor: pointer; }
+  button:focus-visible { outline: 2px solid #535f63; outline-offset: 5px; }
+  button:hover { background: #e0ddd4; }
+  @media (prefers-reduced-motion: reduce) { .door, .trace { transition: none; } }
+</style>
+<header>A House in Conversation · separate threshold study</header>
+<main>
+  <svg viewBox="0 0 1200 620" role="img" aria-label="A narrow opening closes; one broken coloured line remains on the threshold.">
+    <path d="M92 470 L1110 464" fill="none" stroke="#b8b3a7" stroke-width=".7"/>
+    <path d="M600 137 L600 466" fill="none" stroke="#625d53" stroke-width="1.1"/>
+    <path class="door" d="M600 138 L782 199 L781 466 L600 466 Z" fill="#d1cabe"/>
+    <g class="trace" fill="none" stroke-linecap="round">
+      <path d="M279 462 L438 462" stroke="#797772" stroke-width="1.8"/>
+      <path d="M451 462 L571 461" stroke="#a56851" stroke-width="2.5"/>
+      <path d="M574 461 L609 460" stroke="#67796b" stroke-width="1.5"/>
+      <path d="M626 460 L731 460" stroke="#657780" stroke-width="1.9"/>
+    </g>
+  </svg>
+</main>
+<footer><p id="line" aria-live="polite">Something can remain without staying.</p><button type="button" id="pass">pass through</button></footer>
+<script>
+  const pass = document.getElementById('pass');
+  let closeTimer;
+  pass.addEventListener('click', () => {
+    clearTimeout(closeTimer);
+    document.body.classList.add('passing');
+    document.getElementById('line').textContent = 'The room is elsewhere.';
+    closeTimer = setTimeout(() => {
+      document.body.classList.remove('passing');
+      document.getElementById('line').textContent = 'Something can remain without staying.';
+    }, 2200);
+  });
+</script>
+</html>
