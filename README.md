@@ -88,7 +88,7 @@ The repository is a static work designed for GitHub Pages. Publish from the root
 
 ## Status
 
-Version 1.4.1 — recovery of the eight-room house, its threshold, original room compositions, and calendar ageing after the V2 replacement. The restored source, local asset references, and JavaScript syntax have been checked; this recovery has not received a new browser or listening review.
+Version 1.4.1 — recovery of the eight-room house, its threshold, original room compositions, and calendar ageing after the V2 replacement. The restored source, local asset references, and JavaScript syntax have been checked. A [dated desktop browser review](reviews/recovery-20260908.md) now records threshold, sound-toggle and original-room checks; full listening and mobile Safari review remain open. A [separate threshold study](studies/threshold-residue/README.md) is available for viewing without changing the house.
 
 ## Credit
 

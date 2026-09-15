@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-label="A narrow opening closes; one broken coloured line remains on the threshold.">
+    <rect width="1200" height="620" fill="#eae6dd"/><path d="M92 470 L1110 464" fill="none" stroke="#b8b3a7" stroke-width=".7"/>
+    <path d="M600 137 L600 466" fill="none" stroke="#625d53" stroke-width="1.1"/>
+    <path transform="translate(588 0) scale(.02 1)" class="door" d="M600 138 L782 199 L781 466 L600 466 Z" fill="#d1cabe"/>
+    <g opacity=".55" class="trace" fill="none" stroke-linecap="round">
+      <path d="M279 462 L438 462" stroke="#797772" stroke-width="1.8"/>
+      <path d="M451 462 L571 461" stroke="#a56851" stroke-width="2.5"/>
+      <path d="M574 461 L609 460" stroke="#67796b" stroke-width="1.5"/>
+      <path d="M626 460 L731 460" stroke="#657780" stroke-width="1.9"/>
+    </g>
+  </svg>
