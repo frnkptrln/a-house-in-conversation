@@ -124,7 +124,7 @@ function readSeed() {
 
 function readVisits() {
   try {
-    return JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    return HouseMemory.readVisits();
   } catch (error) {
     return {};
   }

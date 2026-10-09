@@ -249,7 +249,7 @@ function finishPerformance() {
   room.dataset.state = "ending";
   status.textContent = "The room has ended.";
   try {
-    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    const visits = HouseMemory.readVisits();
     visits.afterimage = Date.now();
     localStorage.setItem("house-room-visits", JSON.stringify(visits));
   } catch (error) {

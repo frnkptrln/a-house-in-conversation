@@ -1,0 +1,9 @@
+{
+  "name": "house-in-conversation-checks",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/memory.test.cjs",
+    "test:browser": "node tests/memory-browser.cjs"
+  },
+  "devDependencies": { "playwright": "1.62.1" }
+}
