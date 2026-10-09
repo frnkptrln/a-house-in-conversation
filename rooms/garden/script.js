@@ -83,7 +83,7 @@ function rememberGarden() {
 
   try {
     localStorage.setItem(MEMORY_KEY, JSON.stringify(memory));
-    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    const visits = HouseMemory.readVisits();
     visits.garden = now;
     localStorage.setItem("house-room-visits", JSON.stringify(visits));
   } catch (error) {

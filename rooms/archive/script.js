@@ -82,9 +82,9 @@ let audio = null;
 function readStore() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORE) || "null");
-    if (stored && typeof stored === "object") {
+    if (HouseMemory.isRecord(stored)) {
       return {
-        seen: stored.seen && typeof stored.seen === "object" ? stored.seen : {},
+        seen: HouseMemory.isRecord(stored.seen) ? stored.seen : {},
         pool: Array.isArray(stored.pool) ? stored.pool : []
       };
     }
@@ -105,7 +105,7 @@ function writeStore(seen) {
 
 function readVisits() {
   try {
-    return JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    return HouseMemory.readVisits();
   } catch (error) {
     return {};
   }
@@ -113,7 +113,7 @@ function readVisits() {
 
 function rememberVisit() {
   try {
-    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    const visits = HouseMemory.readVisits();
     visits.archive = Date.now();
     localStorage.setItem("house-room-visits", JSON.stringify(visits));
   } catch (error) {
@@ -138,7 +138,10 @@ function readSeed() {
 // the visitor did not go and stand in first.
 let store = readStore();
 let seen = store.seen;
-pool = store.pool.filter(entry => SOURCES[entry.r]?.[entry.f] && entry.s > SPENT);
+pool = store.pool.filter(entry => HouseMemory.isRecord(entry)
+  && typeof entry.r === "string" && Object.hasOwn(SOURCES, entry.r)
+  && Number.isInteger(entry.f) && entry.f >= 0 && entry.f < SOURCES[entry.r].length
+  && Number.isFinite(entry.s) && entry.s > SPENT && entry.s <= 1);
 
 function deposit() {
   const visits = readVisits();

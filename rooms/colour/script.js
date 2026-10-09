@@ -38,7 +38,7 @@ let sourceB = { x: width * .73, y: height * .52 };
 
 function rememberVisit(roomName) {
   try {
-    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    const visits = HouseMemory.readVisits();
     visits[roomName] = Date.now();
     localStorage.setItem("house-room-visits", JSON.stringify(visits));
   } catch (error) {

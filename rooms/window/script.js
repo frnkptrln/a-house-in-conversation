@@ -245,7 +245,7 @@ let air = null;
 
 function rememberVisit() {
   try {
-    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    const visits = HouseMemory.readVisits();
     visits.window = Date.now();
     localStorage.setItem("house-room-visits", JSON.stringify(visits));
   } catch (error) {

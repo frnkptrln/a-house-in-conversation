@@ -105,7 +105,7 @@ function writeSeed() {
 
 function rememberVisit() {
   try {
-    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    const visits = HouseMemory.readVisits();
     visits.machine = Date.now();
     localStorage.setItem("house-room-visits", JSON.stringify(visits));
   } catch (error) {
@@ -115,7 +115,7 @@ function rememberVisit() {
 
 function countTraces() {
   try {
-    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    const visits = HouseMemory.readVisits();
     return HOUSE.filter(name => visits[name]).length;
   } catch (error) {
     return 0;

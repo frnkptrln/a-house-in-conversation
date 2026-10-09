@@ -53,7 +53,7 @@ function approach(current, target, seconds, milliseconds) {
 
 function rememberVisit() {
   try {
-    const visits = JSON.parse(localStorage.getItem("house-room-visits") || "{}");
+    const visits = HouseMemory.readVisits();
     visits.listening = Date.now();
     localStorage.setItem("house-room-visits", JSON.stringify(visits));
   } catch (error) {

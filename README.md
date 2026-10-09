@@ -82,6 +82,23 @@ python -m http.server 8000
 
 Then visit `http://localhost:8000`.
 
+### Check entrances and local memory
+
+The work itself has no package dependencies. Its regression checks use Node 22
+and Playwright:
+
+```bash
+npm ci
+npm test
+npx playwright install chromium
+npm run test:browser
+```
+
+The browser checks enter the threshold and all eight rooms with malformed or
+unavailable browser storage, and check that valid visits, the Machine Room's
+seed, and surviving Archive fragments remain intact. They do not replace a
+full listening review; see the [memory repair review](reviews/memory-20261010.md).
+
 ## Publishing
 
 The repository is a static work designed for GitHub Pages. Publish from the root of the `main` branch.
