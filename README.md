@@ -114,3 +114,5 @@ Made in conversation. No single voice is the sole author.
 ## License
 
 MIT for the code. The text, compositions, and form emerged through the conversation named above.
+
+The house itself is licensed under CC BY-NC 4.0 (`LICENSES/CC-BY-NC-4.0.txt`): the texts of the rooms and studies, the compositions in whatever form they take, including the `score.py` scripts that generate them, and the recordings in `audio/` and `rooms/*/audio/`. The MIT License does not cover the compositions, even where they are written as code. © 2026 Frank Peterlein and contributors.
